@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS Coursework (
     term TEXT,
     year INTEGER,
     gpa FLOAT,
-    credits INTEGER,
+    credits FLOAT,
     FOREIGN KEY (education_id) REFERENCES Education(id) ON DELETE CASCADE
 );
 
@@ -78,9 +78,12 @@ CREATE TABLE IF NOT EXISTS Certifications (
 
 CREATE TABLE IF NOT EXISTS Publications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    person_id INTEGER,
     title TEXT,
+    authors TEXT,
     venue TEXT,
-    publication_date TEXT
+    publication_date TEXT,
+    pages Text
 );
 
 CREATE TABLE IF NOT EXISTS Custom_Resume_Criteria (

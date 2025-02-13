@@ -67,7 +67,7 @@ def add_coursework(education_id, course_name, course_id, term, year, gpa, credit
 def get_education_with_coursework(person_id):
     """Fetches education records along with relevant coursework for a person."""
     query = """
-        SELECT Education.degree, Education.institution, Education.graduation_year, Coursework.course_name
+        SELECT Education.degree, Education.institution, Education.graduation_year, Coursework.course_name, Coursework.course_id
         FROM Education
         LEFT JOIN Coursework ON Education.id = Coursework.education_id
         WHERE Education.person_id = ?
@@ -78,26 +78,42 @@ def get_education_with_coursework(person_id):
     if results:
         print(f"Education and coursework for Person ID {person_id}:")
         for row in results:
-            degree, institution, grad_year, course = row
-            print(f"{degree} from {institution} ({grad_year}) - Course: {course if course else 'No courses listed'}")
+            degree, institution, grad_year, course, id= row
+            print(f"{degree} from {institution} ({grad_year}) - Course: {id} {course if course else 'No courses listed'}")
     else:
         print(f"No education records found for Person ID {person_id}.")
 
-def update_degree_for_person(person_id, old_degree, new_degree, institution, grad_year):
-    """Updates the degree name for a specific person."""
+def add_publication(person_id, title, authors, venue, publication_date, pages):
+    """Adds a publication entry to the database."""
     query = """
-        UPDATE Education 
-        SET degree = ? 
-        WHERE person_id = ? AND degree = ? AND institution = ? AND graduation_year = ?
+        INSERT INTO Publications (person_id, title, authors, venue, publication_date, pages)
+        VALUES (?, ?, ?, ?, ?, ?)
     """
-    execute_query(query, (new_degree, person_id, old_degree, institution, grad_year))
-    print(f"Updated degree for Person ID {person_id} at {institution} to '{new_degree}'")
+    execute_query(query, (person_id, title, authors, venue, publication_date, pages))
+    print(f"Added publication: '{title}' in {venue} on {publication_date} for person_id: {person_id}")
 
+def get_publications(person_id):
+    """Fetches education records along with relevant coursework for a person."""
+    query = """
+        SELECT Publications.title, Publications.authors, Publications.venue, Publications.publication_date, Publications.pages 
+        FROM Publications
+        WHERE Publications.person_id = ?
+        ORDER BY Publications.publication_date DESC
+    """
+    results = fetch_data(query, (person_id,))
+
+    if results:
+        print(f"Publicatiins for Person ID {person_id}:")
+        for row in results:
+            title, authors, venue, publication_date, pages= row
+            print(f"{authors}\n{title}\n{venue},{publication_date}, {pages}")
+    else:
+        print(f"No education records found for Person ID {person_id}.")
 
 # Example Usage
 if __name__ == "__main__":
-    # add_personal_info("Dean Kelley", "dean.a.kelley@gmail.com", "425-614-6257",
-    #                   "linkedin.com/in/dean-kelley-0a7616103", "github.com/deanak1987", "johndoe.dev")
+    add_personal_info("Dean Kelley", "dean.a.kelley@gmail.com", "425-614-6257",
+                      "linkedin.com/in/dean-kelley-0a7616103", "github.com/deanak1987", "johndoe.dev")
 
     # delete_row("Personal_Info", 1)
 
@@ -106,17 +122,48 @@ if __name__ == "__main__":
     # add_education(1, "Associate's of Art", "Olympic College", "Quarter", 2015)
     # add_education(1, "Bachelor's of Science in Mechanical Engineering", "Washington State University", "Semester", 2017)
     # add_education(1, "Master's of Science in Computer Science", "University of Washington", "Quarter", 2024)
-
-    # OC Courses
-    # add_coursework(1, "General Chemistry Prep", "CHEM& 139", "Autumn", 2012,3.5, 5)
+    #
+    # # OC Courses
+    # add_coursework(1, "General Chemistry Prep", "CHEM 139", "Autumn", 2012,3.5, 5)
     # add_coursework(1, "Precalculus I: Algebra", "MATH 141", "Autumn", 2012,3.1, 5)
-    # add_coursework(1, "Spanish I ", "SPAN& 121", "Autumn", 2012,4, 5)
-    # add_coursework(1, "General Chemistry I", "CHEM& 141", "Winter", 2013,3.8, 5)
-    # add_coursework(1, "General Chem Lab I", "CHEM& 151", "Winter", 2013,3.7, 1.5)
-    # add_coursework(1, "Spanish II ", "SPAN& 122", "Winter", 2013,4, 5)
-    add_coursework(1, "General Chemistry I", "CHEM& 141", "Winter", 2013,3.8, 5)
-
-    # WSU COURSES
+    # add_coursework(1, "Spanish I ", "SPAN 121", "Autumn", 2012,4, 5)
+    # add_coursework(1, "General Chemistry I", "CHEM 141", "Winter", 2013,3.8, 5)
+    # add_coursework(1, "General Chem Lab I", "CHEM 151", "Winter", 2013,3.7, 1.5)
+    # add_coursework(1, "Spanish II ", "SPAN 122", "Winter", 2013,4, 5)
+    # add_coursework(1, "General Chemistry II", "CHEM 142", "Spring", 2013,3.6, 5)
+    # add_coursework(1, "General Chem Lab II", "CHEM 152", "Spring", 2013,4, 1.5)
+    # add_coursework(1, "Intro to Engineering", "ENGR 100", "Spring", 2013,4, 1)
+    # add_coursework(1, "Precalculus II: Trig", "MATH 142", "Spring", 2013,3.0, 5)
+    # add_coursework(1, "Technical Writing", "ENGL 235", "Autumn", 2013,4.0, 5)
+    # add_coursework(1, "Engineering Graphics", "ENGR 114", "Autumn", 2013,4.0, 5)
+    # add_coursework(1, "Calculus I", "MATH 151", "Autumn", 2013,4.0, 5)
+    # add_coursework(1, "Engineering Problems", "ENGR 111", "Winter", 2014,3.6, 5)
+    # add_coursework(1, "Intro to Design", "ENGR 104", "Winter", 2014,4.0, 5)
+    # add_coursework(1, "Calculus II", "MATH 152", "Winter", 2014,4.0, 5)
+    # add_coursework(1, "Macro Economics", "ECON 202", "Spring", 2014,4.0, 5)
+    # add_coursework(1, "Statics", "ENGR 214", "Spring", 2014,4.0, 5)
+    # add_coursework(1, "Calculus 3", "MATH 163", "Spring", 2014,3.7, 5)
+    # add_coursework(1, "Mechanics of Materials", "ENGR 225", "Autumn", 2014,3.9, 5)
+    # add_coursework(1, "Calculus 4", "MATH 264", "Autumn", 2014,3.6, 5)
+    # add_coursework(1, "Engineering Physics I", "PHYS 254", "Autumn", 2014,3.4, 5)
+    # add_coursework(1, "Applied Num Methods", "ENGR 240", "Winter", 2015,3.9, 5)
+    # add_coursework(1, "Linear Algebra", "MATH 250", "Winter", 2015,3.6, 5)
+    # add_coursework(1, "Engineering Physics II", "PHYS 255", "Winter", 2015,2.9, 5)
+    # add_coursework(1, "Dynamics", "ENGR 215", "Spring", 2015,3.9, 5)
+    # add_coursework(1, "Differential Equations I", "MATH 221", "Spring", 2015,3.3, 5)
+    # add_coursework(1, "Engineering Physics III", "PHYS 256", "Spring", 2015,3.5, 5)
+    # add_coursework(1, "Public Speaking", "CMST 220", "Summer", 2015,4, 5)
+    # add_coursework(1, "Electrical Circuits", "ENGR 204", "Summer", 2015,4, 5)
+    # add_coursework(1, "Thermodynamics", "ENGR 224", "Fall", 2015,3.9, 5)
+    # add_coursework(1, "CAD Apps for Engr Design", "ENGR 216", "Winter", 2016,4, 3)
+    # add_coursework(1, "Funds/Materials Science", "ENGR 270", "Winter", 2016,3.6, 4)
+    # add_coursework(1, "Materials Sciences La", "ENGR 271", "Winter", 2016,3.9, 2)
+    # add_coursework(1, "Intro to Mass Media", "CMST 102", "Spring", 2016,4, 5)
+    # add_coursework(1, "Adv/Intro Manu Processes", "MANU 210", "Spring", 2016,4, 5)
+    # add_coursework(1, "Adv/CNC Manu Process Lab", "MANU 211", "Spring", 2016,4, 5)
+    # add_coursework(1, "Computer Science I Java", "CS 141", "Winter", 2019,4, 5)
+    #
+    # # WSU COURSES
     # add_coursework(2, "Fluid Mechanics", "ME 303", "Autumn", 2015,3.7, 3)
     # add_coursework(2, "Engineering Analysis", "ME 313", "Autumn", 2015,3.3, 3)
     # add_coursework(2, "Intro to Nuclear Engineering", "ME 461", "Autumn", 2015,4, 3)
@@ -131,9 +178,9 @@ if __name__ == "__main__":
     # add_coursework(2, "Thermal Systems Design", "ME 405", "Spring", 2017,4, 3)
     # add_coursework(2, "Experimental Design", "ME 406", "Spring", 2017,4, 3)
     # add_coursework(2, "Mechanical Systems Design", "ME 416", "Spring", 2017,4, 3)
-
-
-    # UW COURSES
+    #
+    #
+    # # UW COURSES
     # add_coursework(3, "PROGRAMMING PRACT", "TCSS 305", "Autumn", 2019,4, 5)
     # add_coursework(3, "DISCRETE STRUCT I", "TCSS 321", "Autumn", 2019,3.6, 5)
     # add_coursework(3, "DIGITAL SIG PROC", "TEE 453", "Autumn", 2019,3.5, 5)
@@ -152,6 +199,9 @@ if __name__ == "__main__":
     # add_coursework(3, "DESIGN PROJECT CSS", "TCSS 700", "Winter", 2024,4, 5)
     # add_coursework(3, "MASTERS SEMINAR", "TCSS 598", "Winter", 2023,4, 2)
 
+    add_publication(1, "Privacy-Preserving Membership Queries for Federated Anomaly Detection.", "Kelley, D., Vos, J., Pentyala, S., Golob, S., Maia, R., Erkin, Z., De Cock, M., & Nascimento, A", "Proceedings on Privacy Enhancing Technologies", "2024(3)", "186–201")
+
     # Fetch education with coursework for Person ID = 1
     get_education_with_coursework(1)
+    get_publications(1)
 
