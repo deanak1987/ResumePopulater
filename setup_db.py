@@ -70,10 +70,12 @@ CREATE TABLE IF NOT EXISTS Skills (
 
 CREATE TABLE IF NOT EXISTS Certifications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    person_id INTEGER,
     certification_name TEXT,
     issuing_organization TEXT,
     date_obtained TEXT,
-    expiration_date TEXT
+    expiration_date TEXT,
+    field TEXT
 );
 
 CREATE TABLE IF NOT EXISTS Publications (
@@ -81,9 +83,10 @@ CREATE TABLE IF NOT EXISTS Publications (
     person_id INTEGER,
     title TEXT,
     authors TEXT,
+    publication_date INTEGER,
     venue TEXT,
-    publication_date TEXT,
-    pages Text
+    edition TEXT,
+    pages TEXT
 );
 
 CREATE TABLE IF NOT EXISTS Custom_Resume_Criteria (

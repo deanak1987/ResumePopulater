@@ -1,3 +1,5 @@
 python-dotenv  # If you want to use environment variables for config
 Jinja2  # For generating resumes dynamically
 reportlab  # If you want to generate PDFs directly
+PyPDF2
+pdfplumber

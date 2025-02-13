@@ -63,6 +63,24 @@ def add_coursework(education_id, course_name, course_id, term, year, gpa, credit
     execute_query(query, (education_id, course_name, course_id, term, year, gpa, credits))
     print(f"Added course '{course_id}: {course_name}' to Education ID {education_id} with GPA {gpa}")
 
+def get_education(person_id):
+    """Fetches education records for a person."""
+    query = """
+        SELECT Education.degree, Education.institution, Education.graduation_year
+        FROM Education
+        WHERE Education.person_id = ?
+        ORDER BY Education.graduation_year DESC
+    """
+    results = fetch_data(query, (person_id,))
+
+    if results:
+        print(f"Education and coursework for Person ID {person_id}:")
+        for row in results:
+            degree, institution, grad_year = row
+            print(f"{degree} from {institution} ({grad_year})")
+    else:
+        print(f"No education records found for Person ID {person_id}.")
+
 
 def get_education_with_coursework(person_id):
     """Fetches education records along with relevant coursework for a person."""
@@ -83,19 +101,19 @@ def get_education_with_coursework(person_id):
     else:
         print(f"No education records found for Person ID {person_id}.")
 
-def add_publication(person_id, title, authors, venue, publication_date, pages):
+def add_publication(person_id, title, authors, publication_date, venue, edition, pages):
     """Adds a publication entry to the database."""
     query = """
-        INSERT INTO Publications (person_id, title, authors, venue, publication_date, pages)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO Publications (person_id, title, authors, publication_date, venue, edition, pages)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     """
-    execute_query(query, (person_id, title, authors, venue, publication_date, pages))
+    execute_query(query, (person_id, title, authors, publication_date, venue, edition, pages))
     print(f"Added publication: '{title}' in {venue} on {publication_date} for person_id: {person_id}")
 
 def get_publications(person_id):
-    """Fetches education records along with relevant coursework for a person."""
+    """Fetches publication records for a person."""
     query = """
-        SELECT Publications.title, Publications.authors, Publications.venue, Publications.publication_date, Publications.pages 
+        SELECT Publications.title, Publications.authors, Publications.publication_date, Publications.venue, Publications.edition, Publications.pages 
         FROM Publications
         WHERE Publications.person_id = ?
         ORDER BY Publications.publication_date DESC
@@ -103,19 +121,46 @@ def get_publications(person_id):
     results = fetch_data(query, (person_id,))
 
     if results:
-        print(f"Publicatiins for Person ID {person_id}:")
+        print(f"Publications for Person ID {person_id}:")
         for row in results:
-            title, authors, venue, publication_date, pages= row
-            print(f"{authors}\n{title}\n{venue},{publication_date}, {pages}")
+            title, authors, publication_date, venue, edition, pages= row
+            print(f"{authors}. ({publication_date}). {title}\n{venue},{edition}, {pages}")
     else:
-        print(f"No education records found for Person ID {person_id}.")
+        print(f"No publication records found for Person ID {person_id}.")
+
+def add_certification(person_id, certification_name, issuing_organization, date_obtained, expiration_date, field):
+    """Adds a publication entry to the database."""
+    query = """
+        INSERT INTO Certifications (person_id, certification_name, issuing_organization, date_obtained, expiration_date, field)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """
+    execute_query(query, (person_id, certification_name, issuing_organization, date_obtained, expiration_date, field))
+    print(f"Added certification: '{certification_name}' from {issuing_organization} issued on {date_obtained} for person_id: {person_id}")
+
+def get_certifications(person_id):
+    """Fetches certification records for a person."""
+    query = """
+        SELECT Certifications.certification_name, Certifications.issuing_organization, Certifications.date_obtained, Certifications.expiration_date, Certifications.field 
+        FROM Certifications
+        WHERE Certifications.person_id = ?
+        ORDER BY Certifications.date_obtained DESC
+    """
+    results = fetch_data(query, (person_id,))
+
+    if results:
+        print(f"Certifications for Person ID {person_id}:")
+        for row in results:
+            certification_name, issuing_organization, date_obtained, expiration_date, field = row
+            print(f"{certification_name} issued by {issuing_organization} on {date_obtained}. Expires: {expiration_date}")
+    else:
+        print(f"No certification records found for Person ID {person_id}.")
+
 
 # Example Usage
 if __name__ == "__main__":
     add_personal_info("Dean Kelley", "dean.a.kelley@gmail.com", "425-614-6257",
-                      "linkedin.com/in/dean-kelley-0a7616103", "github.com/deanak1987", "johndoe.dev")
+                      "linkedin.com/in/dean-kelley-0a7616103", "github.com/deanak1987", None)
 
-    # delete_row("Personal_Info", 1)
 
     get_personal_info()
 
@@ -199,9 +244,11 @@ if __name__ == "__main__":
     # add_coursework(3, "DESIGN PROJECT CSS", "TCSS 700", "Winter", 2024,4, 5)
     # add_coursework(3, "MASTERS SEMINAR", "TCSS 598", "Winter", 2023,4, 2)
 
-    add_publication(1, "Privacy-Preserving Membership Queries for Federated Anomaly Detection.", "Kelley, D., Vos, J., Pentyala, S., Golob, S., Maia, R., Erkin, Z., De Cock, M., & Nascimento, A", "Proceedings on Privacy Enhancing Technologies", "2024(3)", "186–201")
+    # add_publication(1, "Privacy-Preserving Membership Queries for Federated Anomaly Detection.", "Kelley, D., Vos, J., Pentyala, S., Golob, S., Maia, R., Erkin, Z., De Cock, M., & Nascimento, A", 2024, "Proceedings on Privacy Enhancing Technologies", "2024(3)", "186–201")
 
+    # add_certification(1, "Engineer-in-training", "BRPLES", 2017, None, "Mechanical Engineering")
     # Fetch education with coursework for Person ID = 1
     get_education_with_coursework(1)
     get_publications(1)
+    get_certifications(1)
 
