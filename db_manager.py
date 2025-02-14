@@ -158,8 +158,8 @@ def get_certifications(person_id):
 
 # Example Usage
 if __name__ == "__main__":
-    add_personal_info("Dean Kelley", "dean.a.kelley@gmail.com", "425-614-6257",
-                      "linkedin.com/in/dean-kelley-0a7616103", "github.com/deanak1987", None)
+    # add_personal_info("Dean Kelley", "dean.a.kelley@gmail.com", "425-614-6257",
+    #                   "linkedin.com/in/dean-kelley-0a7616103", "github.com/deanak1987", None)
 
 
     get_personal_info()
