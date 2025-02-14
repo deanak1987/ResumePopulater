@@ -6,126 +6,93 @@ from db_manager import add_education, add_coursework
 
 
 class UWTranscriptParser:
+    """Parses a UW unofficial transcript PDF and extracts structured data."""
+
     def __init__(self, debug=True):
         self.terms_data = []
         self.education_info = {
             "institution": None,
             "degree": None,
             "graduation_year": None,
-            "term_system": "quarter"  # Default for UW
+            "term_system": "quarter",  # Default for UW
+            "gpa": None
         }
         self.debug = debug
 
     def parse_pdf(self, pdf_path: str, output_json: str) -> None:
-        """Parse the entire transcript PDF and output structured JSON."""
+        """Parses the transcript PDF and outputs structured JSON."""
         try:
             with pdfplumber.open(pdf_path) as pdf:
-                full_text = ""
-                first_page_text = ""
+                full_text, first_page_text = "", ""
 
-                # Get first page separately for education info
-                if len(pdf.pages) > 0:
+                if pdf.pages:
                     first_page_text = self._extract_columns(pdf.pages[0])
+                    full_text = "\n".join(self._extract_columns(page) for page in pdf.pages)
 
-                # Get full text for course info
-                for page in pdf.pages:
-                    text = self._extract_columns(page)
-                    if text:
-                        full_text += text + "\n"
-
-                # Extract education info first (primarily from first page)
                 self._extract_education_info(first_page_text, full_text)
-                # Then process transcript data
                 self._process_transcript(full_text)
-
-            # Save as JSON
-            self._save_json(output_json)
+                self._save_json(output_json)
 
         except Exception as e:
-            print(f"Error processing PDF: {str(e)}")
+            print(f"❌ Error processing PDF: {str(e)}")
 
     def _extract_columns(self, page) -> str:
-        """Extracts text from two-column layout by splitting the page in half."""
-        width = page.width
-        half_width = width / 2
-
-        left_crop = page.within_bbox((0, 0, half_width, page.height))
-        right_crop = page.within_bbox((half_width, 0, width, page.height))
-
-        left_text = left_crop.extract_text(x_tolerance=3, y_tolerance=3) if left_crop else ""
-        right_text = right_crop.extract_text(x_tolerance=3, y_tolerance=3) if right_crop else ""
-
+        """Extracts text from a two-column layout by splitting the page."""
+        width = page.width / 2
+        left_text = page.within_bbox((0, 0, width, page.height)).extract_text(x_tolerance=3, y_tolerance=3) or ""
+        right_text = page.within_bbox((width, 0, page.width, page.height)).extract_text(x_tolerance=3, y_tolerance=3) or ""
         return (left_text + "\n" + right_text).strip()
 
     def _extract_education_info(self, first_page_text: str, full_text: str) -> None:
-        """Extracts university and degree information from the transcript."""
+        """Extracts institution, degree, and graduation year from the transcript."""
         if self.debug:
-            print("\nExtracting education information...")
+            print("\n📘 Extracting education information...")
 
-        # Look for institution name (typically at the top of transcript)
-        institution_patterns = [
-            r'(UNIVERSITY OF [A-Z]+(?:\s+[A-Z]+)*)',
-            r'([A-Z]+\s+(?:UNIVERSITY|COLLEGE)(?:\s+[A-Z]+)*)',
-            r'([A-Z]+\s+(?:STATE)\s+(?:UNIVERSITY|COLLEGE)(?:\s+[A-Z]+)*)',
-            r'((?:THE\s+)?[A-Z]+\s+INSTITUTE\s+OF\s+[A-Z]+(?:\s+[A-Z]+)*)',
-            r'([A-Z]+\s+SCHOOL\s+OF\s+[A-Z]+(?:\s+[A-Z]+)*)'
+        # Remove unnecessary newlines
+        first_page_text = first_page_text.replace("\n", " ").strip()
+        full_text = full_text.replace("\n", " ").strip()
+
+        # Remove known transcript metadata lines
+        transcript_metadata_patterns = [
+            r'\bUnofficial Academic Transcript\b.*',  # Remove anything after "Unofficial Academic Transcript"
+            r'\bStudent ID:\s*\d+\b',  # Remove "Student ID: XXXXXXXX"
+            r'\bCampus Location:.*',  # Remove "Campus Location"
+            r'\bDegrees Earned:.*'  # Remove "Degrees Earned"
         ]
+        for pattern in transcript_metadata_patterns:
+            first_page_text = re.sub(pattern, '', first_page_text, flags=re.IGNORECASE).strip()
 
-        # Try first page first, then full text
-        for text in [first_page_text, full_text]:
-            for pattern in institution_patterns:
-                match = re.search(pattern, text)
-                if match:
-                    self.education_info["institution"] = match.group(1).title()
-                    break
-            if self.education_info["institution"]:
-                break
+        # Extract institution name
+        institution_match = re.search(r'(UNIVERSITY OF [A-Z][A-Z\s]+)', first_page_text, re.IGNORECASE)
+        if institution_match:
+            self.education_info["institution"] = institution_match.group(1).title().strip()
 
-        # Look for degree information
-        degree_patterns = [
-            r'(?:DEGREE|PROGRAM):\s*((?:Bachelor|Master|Doctor) of [A-Za-z]+(?:\s+[A-Za-z]+)*)',
-            r'(Bachelor of [A-Za-z]+(?:\s+[A-Za-z]+)*)',
-            r'(Master of [A-Za-z]+(?:\s+[A-Za-z]+)*)',
-            r'(Doctor of [A-Za-z]+(?:\s+[A-Za-z]+)*)',
-            r'(B\.?[A-Z].?\s*(?:in\s+[A-Za-z]+(?:\s+[A-Za-z]+)*)?)',
-            r'(M\.?[A-Z].?\s*(?:in\s+[A-Za-z]+(?:\s+[A-Za-z]+)*)?)',
-            r'(Ph\.?D\.?\s*(?:in\s+[A-Za-z]+(?:\s+[A-Za-z]+)*)?)',
-            r'MAJOR:\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)'  # Fallback to major if degree not found
-        ]
+        # Extract degree and graduation year from "DEGREES EARNED" section
+        degrees_section_match = re.search(r'UNIVERSITY OF WASHINGTON DEGREES EARNED:(.*?)\(\d{2}/\d{2}/\d{2}\)',
+                                          full_text, re.IGNORECASE)
+        if degrees_section_match:
+            degrees_section = degrees_section_match.group(1).strip()
 
-        for pattern in degree_patterns:
-            match = re.search(pattern, full_text, re.IGNORECASE)
-            if match:
-                degree = match.group(1).strip()
-                # If we only found a major, prefix it with "Bachelor of" as default
-                if pattern.startswith('MAJOR'):
-                    degree = f"Bachelor of Science in {degree}"
-                self.education_info["degree"] = degree
-                break
+            # Extract degree name, ensuring we stop before any term (Winter, Spring, etc.)
+            degree_match = re.search(
+                r'((?:BACHELOR|MASTER|DOCTOR) OF [A-Z][A-Z\s]+?)(?:\s+(?:AUTUMN|WINTER|SPRING|SUMMER))?\s*\d{4}',
+                degrees_section, re.IGNORECASE)
+            if degree_match:
+                self.education_info["degree"] = degree_match.group(1).title().strip()
 
-        # Look for graduation year
-        grad_patterns = [
-            r'GRADUATED?\s+(?:IN\s+)?(\d{4})',
-            r'DEGREE\s+AWARDED:?\s+(?:[A-Z]+\s+)?(\d{4})',
-            r'CLASS\s+OF\s+(\d{4})',
-            r'EXPECTED\s+GRADUATION:?\s*(\d{4})',
-            r'ANTICIPATED\s+COMPLETION:?\s*(\d{4})'
-        ]
+            # Extract graduation year
+            year_match = re.search(r'\b(?:AUTUMN|WINTER|SPRING|SUMMER)?\s*(\d{4})', degrees_section, re.IGNORECASE)
+            if year_match:
+                self.education_info["graduation_year"] = int(year_match.group(1))
 
-        for pattern in grad_patterns:
-            match = re.search(pattern, full_text, re.IGNORECASE)
-            if match:
-                self.education_info["graduation_year"] = int(match.group(1))
-                break
-
-        # Determine term system based on terms found
-        if any(term in full_text for term in ['QUARTER', 'QTR']):
+        # Determine term system
+        if "QUARTER" in full_text or "QTR" in full_text:
             self.education_info["term_system"] = "quarter"
-        elif any(term in full_text for term in ['SEMESTER', 'SEM']):
+        elif "SEMESTER" in full_text or "SEM" in full_text:
             self.education_info["term_system"] = "semester"
 
         if self.debug:
-            print("Education info found:", self.education_info)
+            print("✅ Education info extracted:", self.education_info)
 
     def _process_transcript(self, text: str) -> None:
         """Processes extracted transcript text into structured data."""
@@ -135,6 +102,7 @@ class UWTranscriptParser:
         lines = text.split('\n')
         current_term = None
         current_section = []
+        final_cumulative_gpa = None  # Store final cumulative GPA
 
         for line in lines:
             line = re.sub(r'\s+', ' ', line).strip()  # Clean up spaces
@@ -152,25 +120,28 @@ class UWTranscriptParser:
             elif current_term:
                 current_section.append(line)
 
+            # Extract final cumulative GPA (always take the last occurrence)
+            cum_match = re.search(r'CUM\s+GPA:\s*(\d+\.\d+)', line)
+            if cum_match:
+                final_cumulative_gpa = float(cum_match.group(1))  # Keep updating until last occurrence
+
         if current_term and current_section:
             self._process_term_section(current_term, current_section)
 
+        # Store the final cumulative GPA
+        if final_cumulative_gpa:
+            self.education_info["gpa"] = final_cumulative_gpa
+
     def _process_term_section(self, term: str, lines: List[str]) -> None:
-        """Extracts structured course and GPA data from a term section."""
-        courses = []
-        qtr_attempted = qtr_earned = qtr_gpa = 0.0
-        cum_attempted = cum_earned = cum_gpa = 0.0
+        """Extracts course and GPA data from a term section."""
+        courses, qtr_attempted, qtr_earned, qtr_gpa = [], 0.0, 0.0, 0.0
+        cum_attempted, cum_earned, cum_gpa = 0.0, 0.0, 0.0
 
         for line in lines:
             if "CAMPUS" in line.upper():
                 continue
 
-            # Match courses (course ID, name, credits, grade)
-            course_match = re.match(
-                r'([A-Z]+\s*\d{3})\s+([^0-9]+?)\s+(\d+\.?\d*)\s+([0-4]\.\d+|CR|NC|S|NS|W|I|HW)',
-                line,
-                re.IGNORECASE
-            )
+            course_match = re.match(r'([A-Z]+\s*\d{3})\s+([^0-9]+?)\s+(\d+\.?\d*)\s+([0-4]\.\d+|CR|NC|S|NS|W|I|HW)', line, re.IGNORECASE)
             if course_match:
                 courses.append({
                     "course_id": course_match.group(1),
@@ -180,14 +151,12 @@ class UWTranscriptParser:
                 })
                 continue
 
-            # Match quarter stats
-            qtr_match = re.search(r'QTR\s+ATTEMPTED:\s*(\d+\.?\d*)\s+EARNED:\s*(\d+\.?\d*)\s+GPA:\s*(\d+\.?\d*)', line)
+            qtr_match = re.search(r'QTR ATTEMPTED:\s*(\d+\.?\d*)\s+EARNED:\s*(\d+\.?\d*)\s+GPA:\s*(\d+\.?\d*)', line)
             if qtr_match:
                 qtr_attempted, qtr_earned, qtr_gpa = map(float, qtr_match.groups())
                 continue
 
-            # Match cumulative stats
-            cum_match = re.search(r'CUM\s+ATTEMPTED:\s*(\d+\.?\d*).*CUM\s+GPA:\s*(\d+\.?\d*)', line)
+            cum_match = re.search(r'CUM ATTEMPTED:\s*(\d+\.?\d*).*CUM GPA:\s*(\d+\.?\d*)', line)
             if cum_match:
                 cum_attempted, cum_gpa = float(cum_match.group(1)), float(cum_match.group(2))
                 cum_earned = qtr_earned  # Assume cumulative earned updates per term
@@ -205,40 +174,27 @@ class UWTranscriptParser:
         })
 
     def _save_json(self, output_file: str) -> None:
-        """Save parsed transcript data as a JSON file."""
+        """Saves extracted transcript data as a JSON file."""
         try:
-            output_data = {
-                "education": self.education_info,
-                "terms": self.terms_data
-            }
-
             with open(output_file, "w", encoding="utf-8") as f:
-                json.dump(output_data, f, indent=4)
-            print(f"✅ Transcript successfully saved to {output_file}")
+                json.dump({"education": self.education_info, "terms": self.terms_data}, f, indent=4)
+            print(f"✅ Transcript saved to {output_file}")
         except Exception as e:
-            print(f"Error saving JSON: {str(e)}")
+            print(f"❌ Error saving JSON: {str(e)}")
 
     def load_to_db(self, person_id: int, education_id: int) -> None:
-        """Load the parsed transcript data into the database."""
-        # Add education information
+        """Loads extracted data into the database."""
         if self.education_info["institution"]:
-            add_education(
-                person_id=person_id,
-                degree=self.education_info["degree"],
-                institution=self.education_info["institution"],
-                term_system=self.education_info["term_system"],
-                graduation_year=self.education_info["graduation_year"]
-            )
+            add_education(person_id, **self.education_info)
 
-        # Add coursework
         for term in self.terms_data:
             for course in term["courses"]:
                 add_coursework(
                     education_id=education_id,
                     course_name=course["course_name"],
                     course_id=course["course_id"],
-                    term=term["term"].split()[0],  # Extract term name (AUTUMN, WINTER, etc.)
-                    year=int(term["term"].split()[1]),  # Extract year
+                    term=term["term"].split()[0],
+                    year=int(term["term"].split()[1]),
                     gpa=course["grade"],
                     credits=course["credits"]
                 )
@@ -247,7 +203,6 @@ class UWTranscriptParser:
 def main():
     parser = UWTranscriptParser(debug=True)
     parser.parse_pdf("UWUnofficialTranscript FINAL.pdf", "transcript_parsed.json")
-    # Example of loading to database
     parser.load_to_db(person_id=1, education_id=1)
 
 

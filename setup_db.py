@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS Education (
     institution TEXT,
     term_system TEXT,
     graduation_year INTEGER,
+    gpa FLOAT,
     FOREIGN KEY (person_id) REFERENCES Personal_Info(id) ON DELETE CASCADE
 );
 

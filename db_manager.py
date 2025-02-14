@@ -50,11 +50,11 @@ def delete_and_reset_ids(table, row_id):
     conn.close()
     print(f"Row {row_id} deleted and IDs reset in {table}.")
 
-def add_education(person_id, degree, institution, term_system, graduation_year):
+def add_education(person_id, degree, institution, term_system, graduation_year, gpa):
     """Adds an education record linked to a person."""
-    query = """INSERT INTO Education (person_id, degree, institution, term_system, graduation_year)
-               VALUES (?, ?, ?, ?, ?)"""
-    execute_query(query, (person_id, degree, institution, term_system, graduation_year))
+    query = """INSERT INTO Education (person_id, degree, institution, term_system, graduation_year, gpa)
+               VALUES (?, ?, ?, ?, ?, ?)"""
+    execute_query(query, (person_id, degree, institution, term_system, graduation_year, gpa))
     print(f"Education record added for Person ID {person_id} at {institution}")
 
 def add_coursework(education_id, course_name, course_id, term, year, gpa, credits):
@@ -85,7 +85,7 @@ def get_education(person_id):
 def get_education_with_coursework(person_id):
     """Fetches education records along with relevant coursework for a person."""
     query = """
-        SELECT Education.degree, Education.institution, Education.graduation_year, Coursework.course_name, Coursework.course_id
+        SELECT Education.degree, Education.institution, Education.graduation_year, Education.gpa, Coursework.course_name, Coursework.course_id, Coursework.gpa
         FROM Education
         LEFT JOIN Coursework ON Education.id = Coursework.education_id
         WHERE Education.person_id = ?
@@ -96,8 +96,8 @@ def get_education_with_coursework(person_id):
     if results:
         print(f"Education and coursework for Person ID {person_id}:")
         for row in results:
-            degree, institution, grad_year, course, id= row
-            print(f"{degree} from {institution} ({grad_year}) - Course: {id} {course if course else 'No courses listed'}")
+            degree, institution, grad_year, cum_gpa, course, id, gpa= row
+            print(f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {id} {course if course else 'No courses listed'}, GPA: {gpa}")
     else:
         print(f"No education records found for Person ID {person_id}.")
 
