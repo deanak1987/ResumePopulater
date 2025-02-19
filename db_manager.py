@@ -64,17 +64,21 @@ def add_education(person_id, degree, institution, term_system, graduation_year, 
     execute_query(
         query, (person_id, degree, institution, term_system, graduation_year, gpa)
     )
-    print(f"Education record added for Person ID {person_id} at {institution}")
+    print(
+        f"Education record added for Person ID {person_id} at {institution} with gpa of {gpa}"
+    )
 
 
-def add_coursework(education_id, course_name, course_id, term, year, gpa, credits):
+def add_coursework(
+    education_id, course_name, course_id, term, year, gpa, course_credits
+):
     """Adds a coursework entry linked to an education record."""
-    query = "INSERT INTO Coursework (education_id, course_name, course_id, term, year, gpa, credits) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    query = "INSERT INTO Coursework (education_id, course_name, course_id, term, year, gpa, course_credits) VALUES (?, ?, ?, ?, ?, ?, ?)"
     execute_query(
-        query, (education_id, course_name, course_id, term, year, gpa, credits)
+        query, (education_id, course_name, course_id, term, year, gpa, course_credits)
     )
     print(
-        f"Added course '{course_id}: {course_name}' to Education ID {education_id} with GPA {gpa}"
+        f"Added course {course_id}: {course_name} for {course_credits} credits and GPA of {gpa} to Education ID {education_id}."
     )
 
 
@@ -92,7 +96,9 @@ def get_education(person_id):
         print(f"\nEducation for Person ID {person_id}:")
         for row in results:
             degree, institution, grad_year, gpa = row
-            print(f"{degree} from {institution} ({grad_year})")
+            print(
+                f"{degree} from {institution} asquired in {grad_year} with a GPA of {gpa}"
+            )
     else:
         print(f"\nNo education records found for Person ID {person_id}.")
 
@@ -179,7 +185,7 @@ def add_certification(
         ),
     )
     print(
-        f"Added certification: '{certification_name}' from {issuing_organization} issued on {date_obtained} for person_id: {person_id}"
+        f"Added certification: '{certification_name}' from {issuing_organization} issued on {date_obtained} for person_id: {person_id}, field: {field}"
     )
 
 
@@ -204,7 +210,7 @@ def get_certifications(person_id):
                 field,
             ) = row
             print(
-                f"{certification_name} issued by {issuing_organization} on {date_obtained}. Expires: {expiration_date}"
+                f"{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}"
             )
     else:
         print(f"\nNo certification records found for Person ID {person_id}.")

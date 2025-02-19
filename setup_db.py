@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS Coursework (
     term TEXT,
     year INTEGER,
     gpa FLOAT,
-    credits FLOAT,
+    course_credits FLOAT,
     FOREIGN KEY (education_id) REFERENCES Education(id) ON DELETE CASCADE
 );
 

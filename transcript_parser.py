@@ -182,7 +182,7 @@ class TranscriptParser:
                     {
                         "course_id": course_match.group(1),
                         "course_name": course_match.group(2).strip(),
-                        "credits": float(course_match.group(3)),
+                        "course_credits": float(course_match.group(3)),
                         "grade": (
                             course_match.group(4)
                             if course_match.group(4).isalpha()
@@ -250,7 +250,7 @@ class TranscriptParser:
                     term=term["term"].split()[0],
                     year=int(term["term"].split()[1]),
                     gpa=course["grade"],
-                    credits=course["credits"],
+                    course_credits=course["credits"],
                 )
 
 
