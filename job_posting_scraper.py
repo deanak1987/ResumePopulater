@@ -225,10 +225,10 @@ def scrape_job(url):
     return job_data
 
 
-# Example usage
-if __name__ == "__main__":
-    job_url = "https://www.governmentjobs.com/careers/tacoma/jobs/4779178/customer-service-representative"  # Replace with actual job URL
-    job_info = scrape_job(job_url)
-
-for item in job_info:
-    print(f"{item}: {job_info[item]}")
+# # Example usage
+# if __name__ == "__main__":
+#     job_url = "https://www.governmentjobs.com/careers/tacoma/jobs/4779178/customer-service-representative"  # Replace with actual job URL
+#     job_info = scrape_job(job_url)
+#
+# for item in job_info:
+#     print(f"{item}: {job_info[item]}")
