@@ -203,7 +203,7 @@ class TranscriptParser:
 def main():
     parser = TranscriptParser(debug=True)
     parser.parse_pdf("UWUnofficialTranscript FINAL.pdf", "transcript_parsed.json")
-    parser.load_to_db(person_id=1, education_id=1)
+    # parser.load_to_db(person_id=1, education_id=1)
 
 
 if __name__ == "__main__":
