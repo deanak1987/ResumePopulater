@@ -11,7 +11,8 @@ conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
 # Create tables
-cursor.executescript("""
+cursor.executescript(
+    """
 CREATE TABLE IF NOT EXISTS Personal_Info (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     full_name TEXT,
@@ -97,7 +98,8 @@ CREATE TABLE IF NOT EXISTS Custom_Resume_Criteria (
     preferred_experience TEXT,
     keywords TEXT
 );
-""")
+"""
+)
 
 # Commit and close
 conn.commit()

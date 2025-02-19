@@ -16,7 +16,9 @@ def fetch_job_posting(url):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-blink-features=AutomationControlled")
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()), options=options
+    )
     print("Loading webpage.")
     driver.get(url)
 
@@ -33,7 +35,7 @@ def fetch_job_posting(url):
 
 
 def parse_job_details(html, url):
-    soup = BeautifulSoup(html, 'html.parser')
+    soup = BeautifulSoup(html, "html.parser")
     domain = urlparse(url).netloc
 
     job_details = {
@@ -53,22 +55,42 @@ def parse_job_details(html, url):
         "Posting Date": None,
         "Job ID": None,
         "Hiring Manager": None,
-        "Hiring Address": None
+        "Hiring Address": None,
     }
     print("Scraping details...")
     if "indeed.com" in domain:
-        job_details["Job Title"] = soup.find("h1", class_="jobsearch-JobInfoHeader-title").text if soup.find("h1",
-                                                                                                             class_="jobsearch-JobInfoHeader-title") else None
-        job_details["Company Name"] = soup.find("div", class_="jobsearch-CompanyInfoContainer").text if soup.find("div",
-                                                                                                                  class_="jobsearch-CompanyInfoContainer") else None
-        job_details["Job Description"] = soup.find("div", class_="jobsearch-JobComponent-description").text if soup.find(
-            "div", class_="jobsearch-JobComponent-description") else None
+        job_details["Job Title"] = (
+            soup.find("h1", class_="jobsearch-JobInfoHeader-title").text
+            if soup.find("h1", class_="jobsearch-JobInfoHeader-title")
+            else None
+        )
+        job_details["Company Name"] = (
+            soup.find("div", class_="jobsearch-CompanyInfoContainer").text
+            if soup.find("div", class_="jobsearch-CompanyInfoContainer")
+            else None
+        )
+        job_details["Job Description"] = (
+            soup.find("div", class_="jobsearch-JobComponent-description").text
+            if soup.find("div", class_="jobsearch-JobComponent-description")
+            else None
+        )
 
     elif "governmentjobs.com" in url:
-        job_details["Job Title"] = soup.find("h2", class_="entity-title").text.strip() if soup.find("h2", class_="entity-title") else None
-        job_details["Location"] = soup.find("p", class_="job-location").text.strip() if soup.find("p", class_="job-location") else None
-        job_details["Company Name"] = soup.find("div", class_="agency-info agency-name").find(
-            "dd").text.strip() if soup.find("div", class_="agency-info agency-name") else None
+        job_details["Job Title"] = (
+            soup.find("h2", class_="entity-title").text.strip()
+            if soup.find("h2", class_="entity-title")
+            else None
+        )
+        job_details["Location"] = (
+            soup.find("p", class_="job-location").text.strip()
+            if soup.find("p", class_="job-location")
+            else None
+        )
+        job_details["Company Name"] = (
+            soup.find("div", class_="agency-info agency-name").find("dd").text.strip()
+            if soup.find("div", class_="agency-info agency-name")
+            else None
+        )
 
         dt_elements = soup.find_all("dt")
         for dt in dt_elements:
@@ -76,38 +98,59 @@ def parse_job_details(html, url):
                 dd = dt.find_next_sibling("dd")
                 if dd:
 
-                    details = [line.strip() for line in dd.get_text("\n").split("\n") if line.strip()]#dd.get_text(strip=False)
+                    details = [
+                        line.strip()
+                        for line in dd.get_text("\n").split("\n")
+                        if line.strip()
+                    ]  # dd.get_text(strip=False)
                     if "Responsibilities Include:" in details:
                         index = details.index("Responsibilities Include:")
                         job_details["Job Description"] = details[:index]
-                        job_details["Responsibilities"] = details[index + 1:]
+                        job_details["Responsibilities"] = details[index + 1 :]
                     elif any("with any of the following:" in itm for itm in details):
-                        index = next(i for i, itm in enumerate(details) if "with any of the following:" in itm)
+                        index = next(
+                            i
+                            for i, itm in enumerate(details)
+                            if "with any of the following:" in itm
+                        )
                         job_details["Job Description"] = details[:index]
-                        job_details["Responsibilities"] = details[index + 1:]
+                        job_details["Responsibilities"] = details[index + 1 :]
                     else:
                         job_details["Job Description"] = details
             if "Qualifications" in dt.get_text():
                 dd = dt.find_next_sibling("dd")
                 if dd:
-                    job_details["Requirements"] = [line.strip() for line in dd.get_text("\n").split("\n") if line.strip()]#dd.get_text(strip=False)
+                    job_details["Requirements"] = [
+                        line.strip()
+                        for line in dd.get_text("\n").split("\n")
+                        if line.strip()
+                    ]  # dd.get_text(strip=False)
             if "Selection Process & Supplemental Information" in dt.get_text():
                 dd = dt.find_next_sibling("dd")
                 if dd:
                     if "This recruitment is being managed by" in dd.get_text():
-                        match = re.search(r"This recruitment is being managed by (\w+ \w+)",
-                                              dd.get_text(strip=True))
+                        match = re.search(
+                            r"This recruitment is being managed by (\w+ \w+)",
+                            dd.get_text(strip=True),
+                        )
                         if match:
                             job_details["Hiring Manager"] = match.group(1)
             if "Address" in dt.get_text():
                 dd = dt.find_next_sibling("dd")
                 if dd:
-                    job_details["Hiring Address"] = [line.strip() for line in dd.get_text("\n").split("\n") if line.strip()]
+                    job_details["Hiring Address"] = [
+                        line.strip()
+                        for line in dd.get_text("\n").split("\n")
+                        if line.strip()
+                    ]
             if "Knowledge & Skills" in dt.get_text():
                 dd = dt.find_next_sibling("dd")
                 if dd:
-                    job_details["Soft Skills"] = [line.strip() for line in dd.get_text("\n").split("\n") if
-                                                     line.strip()]
+                    job_details["Soft Skills"] = [
+                        line.strip()
+                        for line in dd.get_text("\n").split("\n")
+                        if line.strip()
+                    ]
 
         # job_details["Job Description"] = soup.find("div", id="details-info", class_="tab-pane active fr-view").find(
         #     "dd").text.strip() if soup.find("div", id="details-info", class_="tab-pane active fr-view") else None
@@ -116,20 +159,29 @@ def parse_job_details(html, url):
         if job_type_p:
             job_details["Job Type"] = job_type_p.text.strip()
             # Navigate to the parent's sibling div that contains the <p>
-            job_type_container = job_type_p.find_parent("div", class_="span4").find_next_sibling("div", class_="span8")
-            job_details["Job Type"] = job_type_container.find(
-                "p").text.strip() if job_type_container and job_type_container.find("p") else None
+            job_type_container = job_type_p.find_parent(
+                "div", class_="span4"
+            ).find_next_sibling("div", class_="span8")
+            job_details["Job Type"] = (
+                job_type_container.find("p").text.strip()
+                if job_type_container and job_type_container.find("p")
+                else None
+            )
         else:
             job_details["Job Type"] = None
-
 
         job_num_p = soup.find(string=lambda text: text and "Job Number" in text)
         if job_num_p:
             job_details["Job ID"] = job_num_p.text.strip()
             # Navigate to the parent's sibling div that contains the <p>
-            job_num_container = job_num_p.find_parent("div", class_="span4").find_next_sibling("div", class_="span8")
-            job_details["Job ID"] = job_num_container.find(
-                "p").text.strip() if job_num_container and job_num_container.find("p") else None
+            job_num_container = job_num_p.find_parent(
+                "div", class_="span4"
+            ).find_next_sibling("div", class_="span8")
+            job_details["Job ID"] = (
+                job_num_container.find("p").text.strip()
+                if job_num_container and job_num_container.find("p")
+                else None
+            )
         else:
             job_details["Job ID"] = None
 
@@ -137,18 +189,28 @@ def parse_job_details(html, url):
         if deadline_p:
             job_details["Application Deadline"] = deadline_p.text.strip()
             # Navigate to the parent's sibling div that contains the <p>
-            deadline_type_container = deadline_p.find_parent("div", class_="span4").find_next_sibling("div", class_="span8")
-            job_details["Application Deadline"] = deadline_type_container.find(
-                "p").text.strip() if deadline_type_container and deadline_type_container.find("p") else None
+            deadline_type_container = deadline_p.find_parent(
+                "div", class_="span4"
+            ).find_next_sibling("div", class_="span8")
+            job_details["Application Deadline"] = (
+                deadline_type_container.find("p").text.strip()
+                if deadline_type_container and deadline_type_container.find("p")
+                else None
+            )
         else:
             job_details["Application Deadline"] = None
 
         salary_div = soup.find("div", id="salary-label-id", class_="term-description")
         if salary_div:
             # Navigate to the parent's sibling div that contains the <p>
-            salary_container = salary_div.find_parent("div", class_="span4").find_next_sibling("div", class_="span8")
-            job_details["Salary Range"] = salary_container.find(
-                "p").text.strip() if salary_container and salary_container.find("p") else None
+            salary_container = salary_div.find_parent(
+                "div", class_="span4"
+            ).find_next_sibling("div", class_="span8")
+            job_details["Salary Range"] = (
+                salary_container.find("p").text.strip()
+                if salary_container and salary_container.find("p")
+                else None
+            )
         else:
             job_details["Salary Range"] = None
     return job_details

@@ -3,6 +3,7 @@ import sqlite3
 # Path to the SQLite database
 DB_PATH = r"C:\Users\deana\OneDrive\Documents\Resume\ResumePopulator\resume.db"
 
+
 def execute_query(query, params=()):
     """Executes a given SQL query with optional parameters."""
     conn = sqlite3.connect(DB_PATH)
@@ -10,6 +11,7 @@ def execute_query(query, params=()):
     cursor.execute(query, params)
     conn.commit()
     conn.close()
+
 
 def fetch_data(query, params=()):
     """Fetches data based on a given SQL query."""
@@ -20,12 +22,14 @@ def fetch_data(query, params=()):
     conn.close()
     return results
 
+
 # Example: Adding a new personal info record
 def add_personal_info(name, email, phone, linkedin, github, portfolio):
     query = """INSERT INTO Personal_Info (full_name, email, phone, linkedin, github, portfolio)
                VALUES (?, ?, ?, ?, ?, ?)"""
     execute_query(query, (name, email, phone, linkedin, github, portfolio))
     print("Personal info added successfully!")
+
 
 # Example: Fetching all personal info
 def get_personal_info():
@@ -44,24 +48,35 @@ def delete_and_reset_ids(table, row_id):
     cursor.execute(f"DELETE FROM {table} WHERE id = ?", (row_id,))
 
     # Reset ID sequence by recreating the table without the deleted row
-    cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{table}'")  # Resets autoincrement counter
+    cursor.execute(
+        f"DELETE FROM sqlite_sequence WHERE name='{table}'"
+    )  # Resets autoincrement counter
 
     conn.commit()
     conn.close()
     print(f"Row {row_id} deleted and IDs reset in {table}.")
 
+
 def add_education(person_id, degree, institution, term_system, graduation_year, gpa):
     """Adds an education record linked to a person."""
     query = """INSERT INTO Education (person_id, degree, institution, term_system, graduation_year, gpa)
                VALUES (?, ?, ?, ?, ?, ?)"""
-    execute_query(query, (person_id, degree, institution, term_system, graduation_year, gpa))
+    execute_query(
+        query, (person_id, degree, institution, term_system, graduation_year, gpa)
+    )
     print(f"Education record added for Person ID {person_id} at {institution}")
+
 
 def add_coursework(education_id, course_name, course_id, term, year, gpa, credits):
     """Adds a coursework entry linked to an education record."""
     query = "INSERT INTO Coursework (education_id, course_name, course_id, term, year, gpa, credits) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    execute_query(query, (education_id, course_name, course_id, term, year, gpa, credits))
-    print(f"Added course '{course_id}: {course_name}' to Education ID {education_id} with GPA {gpa}")
+    execute_query(
+        query, (education_id, course_name, course_id, term, year, gpa, credits)
+    )
+    print(
+        f"Added course '{course_id}: {course_name}' to Education ID {education_id} with GPA {gpa}"
+    )
+
 
 def get_education(person_id):
     """Fetches education records for a person."""
@@ -96,10 +111,13 @@ def get_education_with_coursework(person_id):
     if results:
         print(f"\nEducation and coursework for Person ID {person_id}:")
         for row in results:
-            degree, institution, grad_year, cum_gpa, course, id, gpa= row
-            print(f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {id} {course if course else 'No courses listed'}, GPA: {gpa}")
+            degree, institution, grad_year, cum_gpa, course, id, gpa = row
+            print(
+                f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {id} {course if course else 'No courses listed'}, GPA: {gpa}"
+            )
     else:
         print(f"\nNo education records found for Person ID {person_id}.")
+
 
 def add_publication(person_id, title, authors, publication_date, venue, edition, pages):
     """Adds a publication entry to the database."""
@@ -107,8 +125,13 @@ def add_publication(person_id, title, authors, publication_date, venue, edition,
         INSERT INTO Publications (person_id, title, authors, publication_date, venue, edition, pages)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """
-    execute_query(query, (person_id, title, authors, publication_date, venue, edition, pages))
-    print(f"Added publication: '{title}' in {venue} on {publication_date} for person_id: {person_id}")
+    execute_query(
+        query, (person_id, title, authors, publication_date, venue, edition, pages)
+    )
+    print(
+        f"Added publication: '{title}' in {venue} on {publication_date} for person_id: {person_id}"
+    )
+
 
 def get_publications(person_id):
     """Fetches publication records for a person."""
@@ -123,19 +146,42 @@ def get_publications(person_id):
     if results:
         print(f"\nPublications for Person ID {person_id}:")
         for row in results:
-            title, authors, publication_date, venue, edition, pages= row
-            print(f"{authors}. ({publication_date}). {title}\n{venue},{edition}, {pages}")
+            title, authors, publication_date, venue, edition, pages = row
+            print(
+                f"{authors}. ({publication_date}). {title}\n{venue},{edition}, {pages}"
+            )
     else:
         print(f"\nNo publication records found for Person ID {person_id}.")
 
-def add_certification(person_id, certification_name, issuing_organization, date_obtained, expiration_date, field):
+
+def add_certification(
+    person_id,
+    certification_name,
+    issuing_organization,
+    date_obtained,
+    expiration_date,
+    field,
+):
     """Adds a publication entry to the database."""
     query = """
         INSERT INTO Certifications (person_id, certification_name, issuing_organization, date_obtained, expiration_date, field)
         VALUES (?, ?, ?, ?, ?, ?)
     """
-    execute_query(query, (person_id, certification_name, issuing_organization, date_obtained, expiration_date, field))
-    print(f"Added certification: '{certification_name}' from {issuing_organization} issued on {date_obtained} for person_id: {person_id}")
+    execute_query(
+        query,
+        (
+            person_id,
+            certification_name,
+            issuing_organization,
+            date_obtained,
+            expiration_date,
+            field,
+        ),
+    )
+    print(
+        f"Added certification: '{certification_name}' from {issuing_organization} issued on {date_obtained} for person_id: {person_id}"
+    )
+
 
 def get_certifications(person_id):
     """Fetches certification records for a person."""
@@ -150,8 +196,15 @@ def get_certifications(person_id):
     if results:
         print(f"\nCertifications for Person ID {person_id}:")
         for row in results:
-            certification_name, issuing_organization, date_obtained, expiration_date, field = row
-            print(f"{certification_name} issued by {issuing_organization} on {date_obtained}. Expires: {expiration_date}")
+            (
+                certification_name,
+                issuing_organization,
+                date_obtained,
+                expiration_date,
+                field,
+            ) = row
+            print(
+                f"{certification_name} issued by {issuing_organization} on {date_obtained}. Expires: {expiration_date}"
+            )
     else:
         print(f"\nNo certification records found for Person ID {person_id}.")
-
