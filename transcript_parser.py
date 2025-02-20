@@ -1,7 +1,7 @@
 import pdfplumber
 import re
 import json
-from typing import List, Dict
+from typing import List
 from db_manager import add_education, add_coursework
 
 
@@ -34,9 +34,12 @@ class TranscriptParser:
                 self._extract_education_info(first_page_text, full_text)
                 self._process_transcript(full_text)
                 self._save_json(output_json)
-
-        except Exception as e:
+        except FileNotFoundError:
+            print(f"❌ Error: The file '{pdf_path}' was not found.")
+        except (IOError, AttributeError) as e:
             print(f"❌ Error processing PDF: {str(e)}")
+        # except Exception as e:
+        #     print(f"❌ Error processing PDF: {str(e)}")
 
     def _extract_columns(self, page) -> str:
         """Extracts text from a two-column layout by splitting the page."""
@@ -233,8 +236,14 @@ class TranscriptParser:
                     indent=4,
                 )
             print(f"✅ Transcript saved to {output_file}")
-        except Exception as e:
+        except FileNotFoundError:
+            print(f"❌ Error: The file path '{output_file}' is invalid.")
+        except PermissionError:
+            print(f"❌ Error: No permission to write to '{output_file}'.")
+        except (IOError, TypeError) as e:
             print(f"❌ Error saving JSON: {str(e)}")
+        # except Exception as e:
+        #     print(f"❌ Error saving JSON: {str(e)}")
 
     def load_to_db(self, DB_PATH, person_id: int, education_id: int) -> None:
         """Loads extracted data into the database."""

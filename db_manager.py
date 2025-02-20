@@ -129,9 +129,9 @@ def get_education_with_coursework(DB_PATH, person_id):
     if results:
         print(f"\nEducation and coursework for Person ID {person_id}:")
         for row in results:
-            degree, institution, grad_year, cum_gpa, course, id, gpa = row
+            degree, institution, grad_year, cum_gpa, course, course_id, gpa = row
             print(
-                f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {id} {course if course else 'No courses listed'}, GPA: {gpa}"
+                f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {course_id} {course if course else 'No courses listed'}, GPA: {gpa}"
             )
     else:
         print(f"\nNo education records found for Person ID {person_id}.")
