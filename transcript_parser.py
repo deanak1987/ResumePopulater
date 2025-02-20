@@ -15,7 +15,7 @@ class TranscriptParser:
             "degree": None,
             "graduation_year": None,
             "term_system": "quarter",  # Default for UW
-            "gpa": None,
+            "graduation_gpa": None,
         }
         self.debug = debug
 

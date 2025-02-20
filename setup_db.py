@@ -3,6 +3,7 @@ import sqlite3
 # Define the path where the database will be stored (modify as needed)
 # db_path = r"C:\Users\deana\OneDrive\Documents\Resume\ResumePopulator\resume.db"
 
+
 def db_builder(db_path):
     print(f"Building database in {db_path}")
     # Connect to the SQLite database (creates file if it doesn't exist)
@@ -108,5 +109,3 @@ def db_builder(db_path):
     conn.close()
 
     print("Database setup complete! 🎉")
-
-

@@ -57,23 +57,37 @@ def delete_and_reset_ids(DB_PATH, table, row_id):
     print(f"Row {row_id} deleted and IDs reset in {table}.")
 
 
-def add_education(DB_PATH, person_id, degree, institution, term_system, graduation_year, gpa):
+def add_education(
+    DB_PATH,
+    person_id,
+    degree,
+    institution,
+    term_system,
+    graduation_year,
+    graduation_gpa,
+):
     """Adds an education record linked to a person."""
     query = """INSERT INTO Education (person_id, degree, institution, term_system, graduation_year, graduation_gpa)
                VALUES (?, ?, ?, ?, ?, ?)"""
     execute_query(
-        DB_PATH, query, (person_id, degree, institution, term_system, graduation_year, graduation_year)
+        DB_PATH,
+        query,
+        (person_id, degree, institution, term_system, graduation_year, graduation_year),
     )
     print(
-        f"Education record added for Person ID {person_id} at {institution} with gpa of {graduation_year}"
+        f"Education record added for Person ID {person_id} at {institution} from {graduation_year} with gpa of {graduation_gpa}"
     )
 
 
-def add_coursework(DB_PATH, education_id, course_name, course_id, term, year, gpa, course_credits):
+def add_coursework(
+    DB_PATH, education_id, course_name, course_id, term, year, gpa, course_credits
+):
     """Adds a coursework entry linked to an education record."""
     query = "INSERT INTO Coursework (education_id, course_name, course_id, term, year, gpa, course_credits) VALUES (?, ?, ?, ?, ?, ?, ?)"
     execute_query(
-        DB_PATH, query, (education_id, course_name, course_id, term, year, gpa, course_credits)
+        DB_PATH,
+        query,
+        (education_id, course_name, course_id, term, year, gpa, course_credits),
     )
     print(
         f"Added course {course_id}: {course_name} for {course_credits} credits and GPA of {gpa} to Education ID {education_id}."
@@ -123,14 +137,18 @@ def get_education_with_coursework(DB_PATH, person_id):
         print(f"\nNo education records found for Person ID {person_id}.")
 
 
-def add_publication(DB_PATH, person_id, title, authors, publication_date, venue, edition, pages):
+def add_publication(
+    DB_PATH, person_id, title, authors, publication_date, venue, edition, pages
+):
     """Adds a publication entry to the database."""
     query = """
         INSERT INTO Publications (person_id, title, authors, publication_date, venue, edition, pages)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """
     execute_query(
-        DB_PATH, query, (person_id, title, authors, publication_date, venue, edition, pages)
+        DB_PATH,
+        query,
+        (person_id, title, authors, publication_date, venue, edition, pages),
     )
     print(
         f"Added publication: '{title}' in {venue} on {publication_date} for person_id: {person_id}"
@@ -173,7 +191,8 @@ def add_certification(
         VALUES (?, ?, ?, ?, ?, ?)
     """
     execute_query(
-        DB_PATH, query,
+        DB_PATH,
+        query,
         (
             person_id,
             certification_name,
