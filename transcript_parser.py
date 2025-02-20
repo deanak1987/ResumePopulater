@@ -245,7 +245,7 @@ class TranscriptParser:
         # except Exception as e:
         #     print(f"❌ Error saving JSON: {str(e)}")
 
-    def load_to_db(self, DB_PATH, person_id: int, education_id: int) -> None:
+    def load_to_db(self, db_path, person_id: int, education_id: int) -> None:
         """Loads extracted data into the database."""
         if self.education_info["institution"]:
             add_education(person_id, **self.education_info)
@@ -253,7 +253,7 @@ class TranscriptParser:
         for term in self.terms_data:
             for course in term["courses"]:
                 add_coursework(
-                    DB_PATH=DB_PATH,
+                    path=db_path,
                     education_id=education_id,
                     course_name=course["course_name"],
                     course_id=course["course_id"],
@@ -268,7 +268,7 @@ def main():
     db_path = r"C:\Users\deana\OneDrive\Documents\Resume\ResumePopulator\resume.db"
     parser = TranscriptParser(debug=True)
     parser.parse_pdf("UWUnofficialTranscript FINAL.pdf", "transcript_parsed.json")
-    parser.load_to_db(DB_PATH=db_path, person_id=1, education_id=1)
+    parser.load_to_db(db_path=db_path, person_id=1, education_id=1)
 
 
 if __name__ == "__main__":
