@@ -13,3 +13,5 @@ The transcript_parser.py file (currently only configured to read my UW master of
 The job_posting_scraper.py file (currently only configured and tested for the jobs website Government Jobs) loads an url for a job posting and scrapes all the pertinent information.
 
 The resume_builder.py file takes the information from the database and utilizes a template.docx file to automatically populate a resume.
+
+The test_db_manager.py file runs a test on all of the database SQL python functions to ensure that they operate correctly.

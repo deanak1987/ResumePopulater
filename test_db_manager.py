@@ -96,9 +96,7 @@ def test_add_publication():
 
 
 def test_add_certification():
-    add_certification(
-        db_test_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys"
-    )
+    add_certification(db_test_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys")
     results = fetch_data(db_test_path, query="SELECT * FROM Certifications")
     assert len(results) == 1
     assert results[0][2] == "Cool Dude"
@@ -118,21 +116,28 @@ def test_get_personal_info():
         "github.com/john-smith",
         None,
     )
-    assert get_personal_info(db_test_path) == "(1, 'John Smith', 'john.smith@email.com', '555-555-5555', 'linkedin.com/in/john-smith', 'github.com/john-smith', None)\n"
+    assert (
+        get_personal_info(db_test_path)
+        == "(1, 'John Smith', 'john.smith@email.com', '555-555-5555', 'linkedin.com/in/john-smith', 'github.com/john-smith', None)\n"
+    )
 
 
 def test_get_certifications():
-    add_certification(
-        db_test_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys"
+    add_certification(db_test_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys")
+    assert (
+        get_certifications(db_test_path, 1)
+        == "Certifications for Person ID 1:\nCool Dude issued by Studs on 2017, in field of Cool Guys. Expires: None"
     )
-    assert(get_certifications(db_test_path,1)=="Certifications for Person ID 1:\nCool Dude issued by Studs on 2017, in field of Cool Guys. Expires: None")
 
 
 def test_get_education():
     add_education(
         db_test_path, 1, "Associate's of Art", "College", "Quarter", 2015, 3.75
     )
-    assert(get_education(db_test_path,1) == "Education for Person ID 1:\nAssociate's of Art from College aquired in 2015 with a GPA of 3.75\n")
+    assert (
+        get_education(db_test_path, 1)
+        == "Education for Person ID 1:\nAssociate's of Art from College aquired in 2015 with a GPA of 3.75\n"
+    )
 
 
 def test_get_publications():
@@ -146,7 +151,10 @@ def test_get_publications():
         "2024(3)",
         "126-221",
     )
-    assert(get_publications(db_test_path,1) == "Publications for Person ID 1:\nsmith, J. (2024). Creating Cool Stuff.\nCool Stuff,2024(3), 126-221\n")
+    assert (
+        get_publications(db_test_path, 1)
+        == "Publications for Person ID 1:\nsmith, J. (2024). Creating Cool Stuff.\nCool Stuff,2024(3), 126-221\n"
+    )
 
 
 def test_get_education_with_coursework():
@@ -156,4 +164,7 @@ def test_get_education_with_coursework():
     add_coursework(
         db_test_path, 1, "General Chemistry Prep", "CHEM 139", "Autumn", 2012, 3.5, 5
     )
-    assert(get_education_with_coursework(db_test_path,1)=="\nEducation and coursework for Person ID 1:\nAssociate's of Art from College (2015) Cumulative GPA: 3.75 - Course: CHEM 139 General Chemistry Prep, GPA: 3.5 \n")
+    assert (
+        get_education_with_coursework(db_test_path, 1)
+        == "\nEducation and coursework for Person ID 1:\nAssociate's of Art from College (2015) Cumulative GPA: 3.75 - Course: CHEM 139 General Chemistry Prep, GPA: 3.5 \n"
+    )

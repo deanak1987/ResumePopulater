@@ -37,7 +37,7 @@ def get_personal_info(path):
     results = fetch_data(path, query)
     output = ""
     for row in results:
-        output+= f"{row}\n"
+        output += f"{row}\n"
     return output
 
 
@@ -105,7 +105,7 @@ def get_education(path, person_id):
         ORDER BY Education.graduation_year DESC
     """
     results = fetch_data(path, query, (person_id,))
- 
+
     output = ""
     if results:
         output += f"Education for Person ID {person_id}:\n"
@@ -227,8 +227,8 @@ def get_certifications(path, person_id):
                 expiration_date,
                 field,
             ) = row
-        output+=f"\n{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}"
-            
+        output += f"\n{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}"
+
     else:
-        output+= f"\nNo certification records found for Person ID {person_id}."
+        output += f"\nNo certification records found for Person ID {person_id}."
     return output
