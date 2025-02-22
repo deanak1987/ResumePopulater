@@ -4,15 +4,23 @@ This project was designed to practice utilizing SQL in python to build a databas
 ## Database Setup
 The Requirements.txt file contains all the necessary dependencies that must be installed
 
-Run the setup.py file to build the SQLite database that will house the information.
+Run the setup.py file to build the SQLite database to house the information.
 
 The db_manager.py file contains all the necessary functions to add and view the different data to the database. 
 
-The transcript_parser.py file (currently only configured to read my UW master of CS transcript) reads in a transcript PDF and loads the educational institution and coursework information into the DB to alleviate having to input the info by hand.
+The transcript_parser.py file reads in a transcript PDF and loads the educational institution and coursework information into the DB to alleviate having to input the info by hand.
+ * Currently only configured to read my UW master of CS transcript
+ * Need to add further functionality to read other university transcripts
 
-The job_posting_scraper.py file (currently only configured and tested for the jobs website Government Jobs) loads an url for a job posting and scrapes all the pertinent information.
+The job_posting_scraper.py file loads a URL for a job posting and scrapes all the pertinent information.
+ * Currently only configured and tested for the jobs website Government Jobs
+ * Need to add functionality to search other sites
 
 The resume_builder.py file takes the information from the database and utilizes a template.docx file to automatically populate a resume.
+ * Currently performs basic population of education and publication sections
+ * NTA functionality to populate the other fields
+ * NTA functionality to determine best info based on job posting information
+ * 
 
 The test_db_manager.py file runs a test on all of the database SQL python functions to ensure that they operate correctly.
 
