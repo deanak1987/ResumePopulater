@@ -35,8 +35,10 @@ def add_personal_info(path, name, email, phone, linkedin, github, portfolio):
 def get_personal_info(path):
     query = "SELECT * FROM Personal_Info"
     results = fetch_data(path, query)
+    output = ""
     for row in results:
-        print(row)
+        output+= f"{row}\n"
+    return output
 
 
 def delete_and_reset_ids(path, table, row_id):
@@ -103,16 +105,16 @@ def get_education(path, person_id):
         ORDER BY Education.graduation_year DESC
     """
     results = fetch_data(path, query, (person_id,))
-
+ 
+    output = ""
     if results:
-        print(f"\nEducation for Person ID {person_id}:")
+        output += f"Education for Person ID {person_id}:\n"
         for row in results:
             degree, institution, grad_year, gpa = row
-            print(
-                f"{degree} from {institution} asquired in {grad_year} with a GPA of {gpa}"
-            )
+            output += f"{degree} from {institution} aquired in {grad_year} with a GPA of {gpa}\n"
     else:
-        print(f"\nNo education records found for Person ID {person_id}.")
+        output += f"\nNo education records found for Person ID {person_id}."
+    return output
 
 
 def get_education_with_coursework(path, person_id):
@@ -125,16 +127,15 @@ def get_education_with_coursework(path, person_id):
         ORDER BY Education.graduation_year DESC
     """
     results = fetch_data(path, query, (person_id,))
-
+    output = ""
     if results:
-        print(f"\nEducation and coursework for Person ID {person_id}:")
+        output += f"\nEducation and coursework for Person ID {person_id}:\n"
         for row in results:
             degree, institution, grad_year, cum_gpa, course, course_id, gpa = row
-            print(
-                f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {course_id} {course if course else 'No courses listed'}, GPA: {gpa}"
-            )
+            output += f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {course_id} {course if course else 'No courses listed'}, GPA: {gpa} \n"
     else:
-        print(f"\nNo education records found for Person ID {person_id}.")
+        output += f"\nNo education records found for Person ID {person_id}."
+    return output
 
 
 def add_publication(
@@ -164,16 +165,15 @@ def get_publications(path, person_id):
         ORDER BY Publications.publication_date DESC
     """
     results = fetch_data(path, query, (person_id,))
-
+    output = ""
     if results:
-        print(f"\nPublications for Person ID {person_id}:")
+        output += f"Publications for Person ID {person_id}:\n"
         for row in results:
             title, authors, publication_date, venue, edition, pages = row
-            print(
-                f"{authors}. ({publication_date}). {title}\n{venue},{edition}, {pages}"
-            )
+            output += f"{authors}. ({publication_date}). {title}\n{venue},{edition}, {pages}\n"
     else:
-        print(f"\nNo publication records found for Person ID {person_id}.")
+        output += f"\nNo publication records found for Person ID {person_id}."
+    return output
 
 
 def add_certification(
@@ -216,9 +216,9 @@ def get_certifications(path, person_id):
         ORDER BY Certifications.date_obtained DESC
     """
     results = fetch_data(path, query, (person_id,))
-
+    output = ""
     if results:
-        print(f"\nCertifications for Person ID {person_id}:")
+        output += f"Certifications for Person ID {person_id}:"
         for row in results:
             (
                 certification_name,
@@ -227,8 +227,8 @@ def get_certifications(path, person_id):
                 expiration_date,
                 field,
             ) = row
-            print(
-                f"{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}"
-            )
+        output+=f"\n{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}"
+            
     else:
-        print(f"\nNo certification records found for Person ID {person_id}.")
+        output+= f"\nNo certification records found for Person ID {person_id}."
+    return output
