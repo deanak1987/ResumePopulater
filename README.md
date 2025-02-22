@@ -20,7 +20,7 @@ The resume_builder.py file takes the information from the database and utilizes 
  * Currently performs basic population of education and publication sections
  * NTA functionality to populate the other fields
  * NTA functionality to determine best info based on job posting information
- * 
+ * WTA AI functionality to automatically populate personal statement utilizing matches between job description and experience data
 
 The test_db_manager.py file runs a test on all of the database SQL python functions to ensure that they operate correctly.
 
