@@ -47,15 +47,21 @@ def db_builder(db_path):
         FOREIGN KEY (education_id) REFERENCES Education(id) ON DELETE CASCADE
     );
     
-    CREATE TABLE IF NOT EXISTS Work_Experience (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        job_title TEXT,
-        company TEXT,
-        start_date TEXT,
-        end_date TEXT,
-        responsibilities TEXT,
-        key_achievements TEXT,
-        field TEXT
+    CREATE TABLE IF NOT EXISTS Employment (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            person_id INTEGER,
+            company TEXT,
+            location TEXT,
+            job_title TEXT,
+            start_date TEXT,
+            end_date TEXT
+    );
+    
+    CREATE TABLE IF NOT EXISTS Responsibilities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employment_id INTEGER,
+            description TEXT,
+            FOREIGN KEY (employment_id) REFERENCES Employment(id) ON DELETE CASCADE
     );
     
     CREATE TABLE IF NOT EXISTS Projects (
