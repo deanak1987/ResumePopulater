@@ -113,7 +113,7 @@ def get_education(path, person_id):
             degree, institution, grad_year, gpa = row
             output += f"{degree} from {institution} aquired in {grad_year} with a GPA of {gpa}\n"
     else:
-        output += f"\nNo education records found for Person ID {person_id}."
+        output += f"No education records found for Person ID {person_id}."
     return output
 
 
@@ -218,7 +218,7 @@ def get_certifications(path, person_id):
     results = fetch_data(path, query, (person_id,))
     output = ""
     if results:
-        output += f"Certifications for Person ID {person_id}:"
+        output += f"Certifications for Person ID {person_id}:\n"
         for row in results:
             (
                 certification_name,
@@ -227,11 +227,11 @@ def get_certifications(path, person_id):
                 expiration_date,
                 field,
             ) = row
-        output += f"\n{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}\n"
+        output += f"{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}\n"
 
     else:
-        output += f"\nNo certification records found for Person ID {person_id}."
-    return output
+        output += f"No certification records found for Person ID {person_id}."
+    return output.strip()
 
 
 def add_employment(

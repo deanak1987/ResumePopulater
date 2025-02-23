@@ -119,14 +119,18 @@ def test_add_employment():
         "Current",
         ["Did work", "Spoke to clients"],
     )
-    results = fetch_data(db_test_path, query="SELECT * FROM Education")
+    # results = fetch_data(db_test_path, query="SELECT E.*, R.description FROM Employment AS E LEFT JOIN Responsibilities AS R ON R.employment_id = E.id")
+    results = fetch_data(
+        db_test_path,
+        query="SELECT E.*, GROUP_CONCAT(R.description, ',') AS responsibilities FROM Employment AS E LEFT JOIN Responsibilities AS R ON R.employment_id = E.id",
+    )
     assert len(results) == 1
     assert results[0][2] == "Job Inc."
     assert results[0][3] == "Seattle, WA"
     assert results[0][4] == "Worker"
     assert results[0][5] == "June 2020"
     assert results[0][6] == "Current"
-    assert results[0][7] == ["Did work", "Spoke to clients"]
+    assert results[0][7] == "Did work,Spoke to clients"
 
 
 def test_get_personal_info():
@@ -154,6 +158,9 @@ def test_get_certifications():
 
 
 def test_get_education():
+    assert (
+        get_education(db_test_path, 1) == "No education records found for Person ID 1."
+    )
     add_education(
         db_test_path, 1, "Associate's of Art", "College", "Quarter", 2015, 3.75
     )
@@ -190,4 +197,25 @@ def test_get_education_with_coursework():
     assert (
         get_education_with_coursework(db_test_path, 1)
         == "\nEducation and coursework for Person ID 1:\nAssociate's of Art from College (2015) Cumulative GPA: 3.75 - Course: CHEM 139 General Chemistry Prep, GPA: 3.5 \n"
+    )
+
+
+def test_get_employment():
+    assert (
+        get_employment(db_test_path, 1)
+        == "Employment history for Person ID 1:\nNo work history."
+    )
+    add_employment(
+        db_test_path,
+        1,
+        "Job Inc.",
+        "Seattle, WA",
+        "Worker",
+        "June 2020",
+        "Current",
+        ["Did work", "Spoke to clients"],
+    )
+    assert (
+        get_employment(db_test_path, 1)
+        == "Employment history for Person ID 1:\nWorked for Job Inc. as Worker at Seattle, WA from June 2020 - Current with the following responsibilities:\n\t• Did work\n\t• Spoke to clients"
     )
