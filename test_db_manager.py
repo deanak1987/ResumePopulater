@@ -12,6 +12,8 @@ from db_manager import (
     get_publications,
     get_personal_info,
     get_education_with_coursework,
+    add_employment,
+    get_employment,
 )
 import pytest
 
@@ -104,6 +106,27 @@ def test_add_certification():
     assert results[0][4] == "2017"
     assert results[0][5] == None
     assert results[0][6] == "Cool Guys"
+
+
+def test_add_employment():
+    add_employment(
+        db_test_path,
+        1,
+        "Job Inc.",
+        "Seattle, WA",
+        "Worker",
+        "June 2020",
+        "Current",
+        ["Did work", "Spoke to clients"],
+    )
+    results = fetch_data(db_test_path, query="SELECT * FROM Education")
+    assert len(results) == 1
+    assert results[0][2] == "Job Inc."
+    assert results[0][3] == "Seattle, WA"
+    assert results[0][4] == "Worker"
+    assert results[0][5] == "June 2020"
+    assert results[0][6] == "Current"
+    assert results[0][7] == ["Did work", "Spoke to clients"]
 
 
 def test_get_personal_info():

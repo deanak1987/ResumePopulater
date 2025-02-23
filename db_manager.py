@@ -233,27 +233,45 @@ def get_certifications(path, person_id):
         output += f"\nNo certification records found for Person ID {person_id}."
     return output
 
-def add_employment(path, person_id, company, location, job_title, start_date, end_date, responsibilities):
+
+def add_employment(
+    path,
+    person_id,
+    company,
+    location,
+    job_title,
+    start_date,
+    end_date,
+    responsibilities,
+):
     """Adds an employment entry and associated responsibilities."""
     conn = sqlite3.connect(path)
     cursor = conn.cursor()
 
     # Insert job details
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO Employment (person_id, company, location, job_title, start_date, end_date)
         VALUES (?, ?, ?, ?, ?, ?)
-    """, (person_id, company, location, job_title, start_date, end_date))
+    """,
+        (person_id, company, location, job_title, start_date, end_date),
+    )
 
     employment_id = cursor.lastrowid  # Get the last inserted job ID
 
     # Insert responsibilities
     for desc in responsibilities:
-        cursor.execute("INSERT INTO Responsibilities (employment_id, description) VALUES (?, ?)",
-                       (employment_id, desc))
+        cursor.execute(
+            "INSERT INTO Responsibilities (employment_id, description) VALUES (?, ?)",
+            (employment_id, desc),
+        )
 
     conn.commit()
     conn.close()
-    print(f"Added job at {company} ({job_title}) with {len(responsibilities)} responsibilities.")
+    print(
+        f"Added job at {company} ({job_title}) with {len(responsibilities)} responsibilities."
+    )
+
 
 def get_employment(path, person_id):
     """Fetches employment history along with responsibilities."""
@@ -271,11 +289,17 @@ def get_employment(path, person_id):
             job_id, company, location, job_title, start_date, end_date = job
 
             # Fetch responsibilities correctly using job_id
-            responsibilities_query = "SELECT description FROM Responsibilities WHERE employment_id = ?"
-            responsibilities_results = fetch_data(path, responsibilities_query, (job_id,))
+            responsibilities_query = (
+                "SELECT description FROM Responsibilities WHERE employment_id = ?"
+            )
+            responsibilities_results = fetch_data(
+                path, responsibilities_query, (job_id,)
+            )
 
             output += f"Worked for {company} as {job_title} at {location} from {start_date} - {end_date} with the following responsibilities:\n"
-            output += "".join(f"\t• {resp[0]}\n" for resp in responsibilities_results)  # Unpack tuple correctly
+            output += "".join(
+                f"\t• {resp[0]}\n" for resp in responsibilities_results
+            )  # Unpack tuple correctly
             output += "\n"  # Extra line break between jobs
 
     else:
