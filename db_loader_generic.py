@@ -55,7 +55,6 @@ if __name__ == "__main__":
 
     add_certification(db_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys")
     # Fetch education with coursework for Person ID = 1
-    get_education(db_path, 1)
     get_education_with_coursework(db_path, 1)
     get_publications(db_path, 1)
     get_certifications(db_path, 1)
