@@ -1,21 +1,21 @@
 import sqlite3
 
 # Path to the SQLite database
-# DB_PATH = r"C:\Users\deana\OneDrive\Documents\Resume\ResumePopulator\resume.db"
+# path = r"C:\Users\deana\OneDrive\Documents\Resume\ResumePopulator\resume.db"
 
 
-def execute_query(DB_PATH, query, params=()):
+def execute_query(path, query, params=()):
     """Executes a given SQL query with optional parameters."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(path)
     cursor = conn.cursor()
     cursor.execute(query, params)
     conn.commit()
     conn.close()
 
 
-def fetch_data(DB_PATH, query, params=()):
+def fetch_data(path, query, params=()):
     """Fetches data based on a given SQL query."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(path)
     cursor = conn.cursor()
     cursor.execute(query, params)
     results = cursor.fetchall()
@@ -24,24 +24,26 @@ def fetch_data(DB_PATH, query, params=()):
 
 
 # Example: Adding a new personal info record
-def add_personal_info(DB_PATH, name, email, phone, linkedin, github, portfolio):
+def add_personal_info(path, name, email, phone, linkedin, github, portfolio):
     query = """INSERT INTO Personal_Info (full_name, email, phone, linkedin, github, portfolio)
                VALUES (?, ?, ?, ?, ?, ?)"""
-    execute_query(DB_PATH, query, (name, email, phone, linkedin, github, portfolio))
+    execute_query(path, query, (name, email, phone, linkedin, github, portfolio))
     print("Personal info added successfully!")
 
 
 # Example: Fetching all personal info
-def get_personal_info(DB_PATH):
+def get_personal_info(path):
     query = "SELECT * FROM Personal_Info"
-    results = fetch_data(DB_PATH, query)
+    results = fetch_data(path, query)
+    output = ""
     for row in results:
-        print(row)
+        output += f"{row}\n"
+    return output
 
 
-def delete_and_reset_ids(DB_PATH, table, row_id):
+def delete_and_reset_ids(path, table, row_id):
     """Deletes a row and resets ID values to maintain sequential order."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(path)
     cursor = conn.cursor()
 
     # Delete the specified row
@@ -58,7 +60,7 @@ def delete_and_reset_ids(DB_PATH, table, row_id):
 
 
 def add_education(
-    DB_PATH,
+    path,
     person_id,
     degree,
     institution,
@@ -70,9 +72,9 @@ def add_education(
     query = """INSERT INTO Education (person_id, degree, institution, term_system, graduation_year, graduation_gpa)
                VALUES (?, ?, ?, ?, ?, ?)"""
     execute_query(
-        DB_PATH,
+        path,
         query,
-        (person_id, degree, institution, term_system, graduation_year, graduation_year),
+        (person_id, degree, institution, term_system, graduation_year, graduation_gpa),
     )
     print(
         f"Education record added for Person ID {person_id} at {institution} from {graduation_year} with gpa of {graduation_gpa}"
@@ -80,12 +82,12 @@ def add_education(
 
 
 def add_coursework(
-    DB_PATH, education_id, course_name, course_id, term, year, gpa, course_credits
+    path, education_id, course_name, course_id, term, year, gpa, course_credits
 ):
     """Adds a coursework entry linked to an education record."""
     query = "INSERT INTO Coursework (education_id, course_name, course_id, term, year, gpa, course_credits) VALUES (?, ?, ?, ?, ?, ?, ?)"
     execute_query(
-        DB_PATH,
+        path,
         query,
         (education_id, course_name, course_id, term, year, gpa, course_credits),
     )
@@ -94,7 +96,7 @@ def add_coursework(
     )
 
 
-def get_education(DB_PATH, person_id):
+def get_education(path, person_id):
     """Fetches education records for a person."""
     query = """
         SELECT Education.degree, Education.institution, Education.graduation_year, Education.graduation_gpa
@@ -102,20 +104,20 @@ def get_education(DB_PATH, person_id):
         WHERE Education.person_id = ?
         ORDER BY Education.graduation_year DESC
     """
-    results = fetch_data(DB_PATH, query, (person_id,))
+    results = fetch_data(path, query, (person_id,))
 
+    output = ""
     if results:
-        print(f"\nEducation for Person ID {person_id}:")
+        output += f"Education for Person ID {person_id}:\n"
         for row in results:
             degree, institution, grad_year, gpa = row
-            print(
-                f"{degree} from {institution} asquired in {grad_year} with a GPA of {gpa}"
-            )
+            output += f"{degree} from {institution} aquired in {grad_year} with a GPA of {gpa}\n"
     else:
-        print(f"\nNo education records found for Person ID {person_id}.")
+        output += f"\nNo education records found for Person ID {person_id}."
+    return output
 
 
-def get_education_with_coursework(DB_PATH, person_id):
+def get_education_with_coursework(path, person_id):
     """Fetches education records along with relevant coursework for a person."""
     query = """
         SELECT Education.degree, Education.institution, Education.graduation_year, Education.graduation_gpa, Coursework.course_name, Coursework.course_id, Coursework.gpa
@@ -124,21 +126,20 @@ def get_education_with_coursework(DB_PATH, person_id):
         WHERE Education.person_id = ?
         ORDER BY Education.graduation_year DESC
     """
-    results = fetch_data(DB_PATH, query, (person_id,))
-
+    results = fetch_data(path, query, (person_id,))
+    output = ""
     if results:
-        print(f"\nEducation and coursework for Person ID {person_id}:")
+        output += f"\nEducation and coursework for Person ID {person_id}:\n"
         for row in results:
-            degree, institution, grad_year, cum_gpa, course, id, gpa = row
-            print(
-                f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {id} {course if course else 'No courses listed'}, GPA: {gpa}"
-            )
+            degree, institution, grad_year, cum_gpa, course, course_id, gpa = row
+            output += f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {course_id} {course if course else 'No courses listed'}, GPA: {gpa} \n"
     else:
-        print(f"\nNo education records found for Person ID {person_id}.")
+        output += f"\nNo education records found for Person ID {person_id}."
+    return output
 
 
 def add_publication(
-    DB_PATH, person_id, title, authors, publication_date, venue, edition, pages
+    path, person_id, title, authors, publication_date, venue, edition, pages
 ):
     """Adds a publication entry to the database."""
     query = """
@@ -146,7 +147,7 @@ def add_publication(
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """
     execute_query(
-        DB_PATH,
+        path,
         query,
         (person_id, title, authors, publication_date, venue, edition, pages),
     )
@@ -155,7 +156,7 @@ def add_publication(
     )
 
 
-def get_publications(DB_PATH, person_id):
+def get_publications(path, person_id):
     """Fetches publication records for a person."""
     query = """
         SELECT Publications.title, Publications.authors, Publications.publication_date, Publications.venue, Publications.edition, Publications.pages 
@@ -163,21 +164,20 @@ def get_publications(DB_PATH, person_id):
         WHERE Publications.person_id = ?
         ORDER BY Publications.publication_date DESC
     """
-    results = fetch_data(DB_PATH, query, (person_id,))
-
+    results = fetch_data(path, query, (person_id,))
+    output = ""
     if results:
-        print(f"\nPublications for Person ID {person_id}:")
+        output += f"Publications for Person ID {person_id}:\n"
         for row in results:
             title, authors, publication_date, venue, edition, pages = row
-            print(
-                f"{authors}. ({publication_date}). {title}\n{venue},{edition}, {pages}"
-            )
+            output += f"{authors}. ({publication_date}). {title}\n{venue},{edition}, {pages}\n"
     else:
-        print(f"\nNo publication records found for Person ID {person_id}.")
+        output += f"\nNo publication records found for Person ID {person_id}."
+    return output
 
 
 def add_certification(
-    DB_PATH,
+    path,
     person_id,
     certification_name,
     issuing_organization,
@@ -191,7 +191,7 @@ def add_certification(
         VALUES (?, ?, ?, ?, ?, ?)
     """
     execute_query(
-        DB_PATH,
+        path,
         query,
         (
             person_id,
@@ -207,7 +207,7 @@ def add_certification(
     )
 
 
-def get_certifications(DB_PATH, person_id):
+def get_certifications(path, person_id):
     """Fetches certification records for a person."""
     query = """
         SELECT Certifications.certification_name, Certifications.issuing_organization, Certifications.date_obtained, Certifications.expiration_date, Certifications.field 
@@ -215,10 +215,10 @@ def get_certifications(DB_PATH, person_id):
         WHERE Certifications.person_id = ?
         ORDER BY Certifications.date_obtained DESC
     """
-    results = fetch_data(DB_PATH, query, (person_id,))
-
+    results = fetch_data(path, query, (person_id,))
+    output = ""
     if results:
-        print(f"\nCertifications for Person ID {person_id}:")
+        output += f"Certifications for Person ID {person_id}:"
         for row in results:
             (
                 certification_name,
@@ -227,8 +227,8 @@ def get_certifications(DB_PATH, person_id):
                 expiration_date,
                 field,
             ) = row
-            print(
-                f"{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}"
-            )
+        output += f"\n{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}"
+
     else:
-        print(f"\nNo certification records found for Person ID {person_id}.")
+        output += f"\nNo certification records found for Person ID {person_id}."
+    return output
