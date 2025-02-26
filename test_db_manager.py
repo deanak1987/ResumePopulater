@@ -64,7 +64,7 @@ def test_add_education():
 
 def test_add_coursework():
     add_coursework(
-        db_test_path, 1, "General Chemistry Prep", "CHEM 139", "Autumn", 2012, 3.5, 5
+        db_test_path, 1, "General Chemistry Prep", "CHEM 139", "Autumn", 2012, 3.5, 5, "Chemistry"
     )
     results = fetch_data(db_test_path, query="SELECT * FROM Coursework")
     assert len(results) == 1
@@ -74,6 +74,7 @@ def test_add_coursework():
     assert results[0][5] == 2012
     assert results[0][6] == 3.5
     assert results[0][7] == 5
+    assert results[0][8] == "Chemistry"
 
 
 def test_add_publication():
@@ -118,6 +119,7 @@ def test_add_employment():
         "June 2020",
         "Current",
         ["Did work", "Spoke to clients"],
+        ["General", "General"]
     )
     # results = fetch_data(db_test_path, query="SELECT E.*, R.description FROM Employment AS E LEFT JOIN Responsibilities AS R ON R.employment_id = E.id")
     results = fetch_data(
@@ -192,11 +194,11 @@ def test_get_education_with_coursework():
         db_test_path, 1, "Associate's of Art", "College", "Quarter", 2015, 3.75
     )
     add_coursework(
-        db_test_path, 1, "General Chemistry Prep", "CHEM 139", "Autumn", 2012, 3.5, 5
+        db_test_path, 1, "General Chemistry Prep", "CHEM 139", "Autumn", 2012, 3.5, 5, "Chemistry"
     )
     assert (
         get_education_with_coursework(db_test_path, 1)
-        == "\nEducation and coursework for Person ID 1:\nAssociate's of Art from College (2015) Cumulative GPA: 3.75 - Course: CHEM 139 General Chemistry Prep, GPA: 3.5 \n"
+        == "\nEducation and coursework for Person ID 1:\nAssociate's of Art from College (2015) Cumulative GPA: 3.75 - Course: CHEM 139 General Chemistry Prep, GPA: 3.5, Field: Chemistry\n"
     )
 
 

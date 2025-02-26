@@ -117,7 +117,7 @@ def get_education(path, person_id):
 def get_education_with_coursework(path, person_id):
     """Fetches education records along with relevant coursework for a person."""
     query = """
-        SELECT Education.degree, Education.institution, Education.graduation_year, Education.graduation_gpa, Coursework.course_name, Coursework.course_id, Coursework.gpa
+        SELECT Education.degree, Education.institution, Education.graduation_year, Education.graduation_gpa, Coursework.course_name, Coursework.course_id, Coursework.gpa, Coursework.field
         FROM Education
         LEFT JOIN Coursework ON Education.id = Coursework.education_id
         WHERE Education.person_id = ?
@@ -128,8 +128,8 @@ def get_education_with_coursework(path, person_id):
     if results:
         output += f"\nEducation and coursework for Person ID {person_id}:\n"
         for row in results:
-            degree, institution, grad_year, cum_gpa, course, course_id, gpa = row
-            output += f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {course_id} {course if course else 'No courses listed'}, GPA: {gpa} \n"
+            degree, institution, grad_year, cum_gpa, course, course_id, gpa, field = row
+            output += f"{degree} from {institution} ({grad_year}) Cumulative GPA: {cum_gpa} - Course: {course_id} {course if course else 'No courses listed'}, GPA: {gpa}, Field: {field}\n"
     else:
         output += f"\nNo education records found for Person ID {person_id}."
     return output
