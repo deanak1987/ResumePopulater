@@ -79,14 +79,14 @@ def add_education(
 
 
 def add_coursework(
-    path, education_id, course_name, course_id, term, year, gpa, course_credits
+    path, education_id, course_name, course_id, term, year, gpa, course_credits, field
 ):
     """Adds a coursework entry linked to an education record."""
-    query = "INSERT INTO Coursework (education_id, course_name, course_id, term, year, gpa, course_credits) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    query = "INSERT INTO Coursework (education_id, course_name, course_id, term, year, gpa, course_credits, field) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     execute_query(
         path,
         query,
-        (education_id, course_name, course_id, term, year, gpa, course_credits),
+        (education_id, course_name, course_id, term, year, gpa, course_credits, field),
     )
     print(
         f"Added course {course_id}: {course_name} for {course_credits} credits and GPA of {gpa} to Education ID {education_id}."
@@ -232,15 +232,16 @@ def get_certifications(path, person_id):
 
 
 def add_employment(
-    path,
-    person_id,
-    company,
-    location,
-    job_title,
-    start_date,
-    end_date,
-    responsibilities,
-):
+        path,
+        person_id,
+        company,
+        location,
+        job_title,
+        start_date,
+        end_date,
+        responsibilities,
+        fields
+    ):
     """Adds an employment entry and associated responsibilities."""
     conn = sqlite3.connect(path)
     cursor = conn.cursor()
@@ -257,11 +258,11 @@ def add_employment(
     employment_id = cursor.lastrowid  # Get the last inserted job ID
 
     # Insert responsibilities
-    for desc in responsibilities:
-        cursor.execute(
-            "INSERT INTO Responsibilities (employment_id, description) VALUES (?, ?)",
-            (employment_id, desc),
-        )
+    data = [(employment_id, desc, field) for desc, field in zip(responsibilities, fields)]
+    cursor.executemany(
+        "INSERT INTO Responsibilities (employment_id, description, field) VALUES (?, ?, ?)",
+        data,
+    )
 
     conn.commit()
     conn.close()

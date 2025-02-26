@@ -1,6 +1,6 @@
 import sqlite3
 from docx import Document
-from db_manager import get_employment_resume
+# from db_manager import get_employment_resume
 
 
 db_path = "resume.db"
@@ -124,8 +124,8 @@ def populate_resume(
         person_id, template_path="template.docx", output_file="Resume.docx"
 ):
     """Loads a Word template and replaces placeholders with actual data."""
-    from docx.shared import Pt, Inches
-    from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+    # from docx.shared import Pt, Inches
+    # from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
     doc = Document(template_path)
     data = fetch_resume_data(person_id)
@@ -141,7 +141,7 @@ def populate_resume(
         if not para.runs:
             continue
 
-        original_style = para.style
+        # original_style = para.style
         original_font = para.runs[0].font if para.runs else None
 
         if "{education}" in para.text:

@@ -51,13 +51,15 @@ def db_builder(db_path):
             location TEXT,
             job_title TEXT,
             start_date TEXT,
-            end_date TEXT
+            end_date TEXT,
+            field TEXT
     );
-    
+
     CREATE TABLE IF NOT EXISTS Responsibilities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             employment_id INTEGER,
             description TEXT,
+            field TEXT,
             FOREIGN KEY (employment_id) REFERENCES Employment(id) ON DELETE CASCADE
     );
     

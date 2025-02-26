@@ -52,12 +52,14 @@ CREATE TABLE Employment (
             location TEXT,
             job_title TEXT,
             start_date TEXT,
-            end_date TEXT
+            end_date TEXT,
+            field TEXT
     )
 CREATE TABLE Responsibilities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             employment_id INTEGER,
             description TEXT,
+            field TEXT,
             FOREIGN KEY (employment_id) REFERENCES Employment(id) ON DELETE CASCADE
     )
 CREATE TABLE Projects (
