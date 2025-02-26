@@ -288,7 +288,7 @@ def get_employment(path, person_id):
 
             # Fetch responsibilities correctly using job_id
             responsibilities_query = (
-                "SELECT description FROM Responsibilities WHERE employment_id = ?"
+                "SELECT description, field FROM Responsibilities WHERE employment_id = ?"
             )
             responsibilities_results = fetch_data(
                 path, responsibilities_query, (job_id,)

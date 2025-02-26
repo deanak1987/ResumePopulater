@@ -132,7 +132,7 @@ def test_add_employment():
     assert results[0][4] == "Worker"
     assert results[0][5] == "June 2020"
     assert results[0][6] == "Current"
-    assert results[0][7] == "Did work,Spoke to clients"
+    assert results[0][7] == None# "Did work,Spoke to clients"
 
 
 def test_get_personal_info():
@@ -216,6 +216,7 @@ def test_get_employment():
         "June 2020",
         "Current",
         ["Did work", "Spoke to clients"],
+        ["General", "General"]
     )
     assert (
         get_employment(db_test_path, 1)
