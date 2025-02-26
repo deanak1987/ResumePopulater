@@ -1,8 +1,5 @@
 import sqlite3
 
-# Path to the SQLite database
-# path = r"C:\Users\deana\OneDrive\Documents\Resume\ResumePopulator\resume.db"
-
 
 def execute_query(path, query, params=()):
     """Executes a given SQL query with optional parameters."""
@@ -111,7 +108,7 @@ def get_education(path, person_id):
         output += f"Education for Person ID {person_id}:\n"
         for row in results:
             degree, institution, grad_year, gpa = row
-            output += f"{degree} from {institution} aquired in {grad_year} with a GPA of {gpa}\n"
+            output += f"{degree} from {institution} acquired in {grad_year} with a GPA of {gpa}\n"
     else:
         output += f"No education records found for Person ID {person_id}."
     return output
@@ -227,7 +224,7 @@ def get_certifications(path, person_id):
                 expiration_date,
                 field,
             ) = row
-        output += f"{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}\n"
+            output += f"{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}\n"
 
     else:
         output += f"No certification records found for Person ID {person_id}."
@@ -306,3 +303,44 @@ def get_employment(path, person_id):
         output += "No work history."
 
     return output.strip()
+
+def get_employment_resume(path, person_id):
+    """Fetches employment history along with responsibilities."""
+    query = """
+        SELECT e.id, e.company, e.location, e.job_title, e.start_date, e.end_date
+        FROM Employment e
+        WHERE e.person_id = ?
+        ORDER BY e.start_date DESC
+    """
+
+    results = fetch_data(path, query, (person_id,))
+    output = ""
+    if results:
+        for job in results:
+            job_id, company, location, job_title, start_date, end_date = job
+
+            # Fetch responsibilities correctly using job_id
+            responsibilities_query = (
+                "SELECT description FROM Responsibilities WHERE employment_id = ?"
+            )
+            responsibilities_results = fetch_data(
+                path, responsibilities_query, (job_id,)
+            )
+
+            output += f"{company}\n\t{job_title}, {location}\t{start_date} - {end_date}\n"
+            output += "".join(
+                f"\t• {resp[0]}\n" for resp in responsibilities_results
+            )  # Unpack tuple correctly
+            output += "\n"  # Extra line break between jobs
+    else:
+        output += "No work history."
+    return output.strip()
+
+def get_schema(path):
+    """ Fetches SQL DB schema"""
+    query = """
+    SELECT sql FROM sqlite_master WHERE type='table'
+    """
+    results = fetch_data(path, query=query)
+    return results
+

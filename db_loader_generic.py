@@ -13,7 +13,7 @@ from db_manager import (
 )
 
 if __name__ == "__main__":
-    db_path = r"C:\Users\deana\OneDrive\Documents\Resume\ResumePopulator\resume_gen.db"
+    db_path = r"/\resume_gen.db"
 
     db_builder(db_path)
     add_personal_info(

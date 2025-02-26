@@ -265,7 +265,7 @@ class TranscriptParser:
 
 
 def main():
-    db_path = r"C:\Users\deana\OneDrive\Documents\Resume\ResumePopulator\resume.db"
+    db_path = r"/\resume.db"
     parser = TranscriptParser(debug=True)
     parser.parse_pdf("UWUnofficialTranscript FINAL.pdf", "transcript_parsed.json")
     parser.load_to_db(db_path=db_path, person_id=1, education_id=1)

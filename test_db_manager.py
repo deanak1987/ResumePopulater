@@ -104,7 +104,7 @@ def test_add_certification():
     assert results[0][2] == "Cool Dude"
     assert results[0][3] == "Studs"
     assert results[0][4] == "2017"
-    assert results[0][5] == None
+    assert results[0][5] is None
     assert results[0][6] == "Cool Guys"
 
 
@@ -166,7 +166,7 @@ def test_get_education():
     )
     assert (
         get_education(db_test_path, 1)
-        == "Education for Person ID 1:\nAssociate's of Art from College aquired in 2015 with a GPA of 3.75\n"
+        == "Education for Person ID 1:\nAssociate's of Art from College acquired in 2015 with a GPA of 3.75\n"
     )
 
 

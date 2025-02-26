@@ -25,3 +25,6 @@ jobs:
     - name: Format code
       run: |
         make format
+    - name: Run update README script
+      run: |
+        python db_schema_update.py

@@ -1,7 +1,9 @@
 import sqlite3
 from docx import Document
+from db_manager import get_employment_resume
 
 
+db_path = "resume.db"
 def fetch_resume_data(person_id):
     """Fetches all resume-related data from the database."""
     conn = sqlite3.connect("resume.db")  # Update with your actual DB path
@@ -21,7 +23,7 @@ def fetch_resume_data(person_id):
     # Fetch education details
     cursor.execute(
         """
-        SELECT Education.degree, Education.institution, Education.graduation_year, Education.gpa
+        SELECT Education.degree, Education.institution, Education.graduation_year, Education.graduation_gpa
         FROM Education
         WHERE Education.person_id = ?
         ORDER BY Education.graduation_year DESC
@@ -42,12 +44,28 @@ def fetch_resume_data(person_id):
     )
     publications = cursor.fetchall()
 
+
+    # Fetch employment details
+    cursor.execute(
+        """
+        SELECT E.company, E.location, E.job_title, E.start_date, E.end_date, GROUP_CONCAT(R.description, ';') AS responsibilities 
+        FROM Employment AS E 
+        LEFT JOIN Responsibilities AS R ON R.employment_id = E.id
+        WHERE E.person_id = ?
+        GROUP BY E.company, E.location, E.job_title, E.start_date, E.end_date
+        ORDER BY E.start_date DESC
+        """,
+        (person_id,)
+    )
+    employment = cursor.fetchall()
+
     conn.close()
     return {
         "full_name": full_name,
         "email": email,
         "linkedin": linkedin,
         "education": education,
+        "employment": employment,
         "publications": publications,
     }
 
@@ -103,35 +121,32 @@ def replace_text_while_keeping_formatting(paragraph, key, value):
 
 
 def populate_resume(
-    person_id, template_path="template.docx", output_file="Resume.docx"
+        person_id, template_path="template.docx", output_file="Resume.docx"
 ):
     """Loads a Word template and replaces placeholders with actual data."""
+    from docx.shared import Pt, Inches
+    from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+
     doc = Document(template_path)
     data = fetch_resume_data(person_id)
-
-    print("Before replacement:")
-    for i, para in enumerate(doc.paragraphs):
-        print(f"Paragraph {i}: '{para.text}'")
-        for j, run in enumerate(para.runs):
-            print(f"  Run {j}: '{run.text}'")
 
     # Replace single-value placeholders while maintaining formatting
     for para in doc.paragraphs:
         replace_text_while_keeping_formatting(para, "{full_name}", data["full_name"])
         replace_text_while_keeping_formatting(para, "{email}", data["email"])
         replace_text_while_keeping_formatting(para, "{linkedin}", data["linkedin"])
-    print(f"Printed {data['full_name']}, {data['email']}, {data['linkedin']}")
 
-    # Handle multiple education entries
+    # Handle education, publications and employment sections
     for para in doc.paragraphs:
-        if "{education}" in para.text:
-            # Store the original formatting of the paragraph
-            original_style = para.style
-            original_font = (
-                para.runs[0].font if para.runs else None
-            )  # Save font details
+        if not para.runs:
+            continue
 
-            para.text = ""  # Clear text while keeping the style
+        original_style = para.style
+        original_font = para.runs[0].font if para.runs else None
+
+        if "{education}" in para.text:
+            # Clear the paragraph while keeping its style
+            para.clear()
 
             for degree, institution, graduation_year, gpa in data["education"]:
                 run = para.add_run(f"{institution}, \t{graduation_year}\n")
@@ -142,31 +157,80 @@ def populate_resume(
                 if original_font:
                     run.font.name = original_font.name
                     run.font.size = original_font.size
+                    degree_run.font.name = original_font.name
                     degree_run.font.size = original_font.size
 
-            para.style = original_style  # Reapply original style
-        if "{publications}" in para.text:
-            original_style = para.style
-            original_font = (
-                para.runs[0].font if para.runs else None
-            )  # Save font details
-            #
-            para.text = ""  # Clear text while keeping the style
-            #
-            for title, authors, publication_date, venue, edition, pages in data[
-                "publications"
-            ]:
-                # Add publication
-                run = para.add_run(
-                    f"{authors}. ({publication_date}). {title}\n{venue}, {edition}, {pages}"
-                )
-                run.font.name = original_style.font.name
+        elif "{publications}" in para.text:
+            # Clear the paragraph while keeping its style
+            para.clear()
+
+            for title, authors, publication_date, venue, edition, pages in data["publications"]:
+                run = para.add_run(f"{authors}. ({publication_date}). {title}\n{venue}, {edition}, {pages}\n\n")
                 if original_font:
                     run.font.name = original_font.name
                     run.font.size = original_font.size
+
+        elif "{employment}" in para.text:
+            # Clear the paragraph
+            current_para = para
+            current_para.clear()
+            prev_company = ''
+
+            # Store the original paragraph format for resetting
+            original_indent = para.paragraph_format.left_indent
+
+            for company, location, title, start_date, end_date, responsibilities in data["employment"]:
+                # Reset paragraph indentation for each new company
+                if prev_company != company:
+                    # Reset to original indent (usually 0 for left margin)
+                    current_para.paragraph_format.left_indent = original_indent
+
+                    # Add company with bold formatting
+                    company_run = current_para.add_run(f"{company}")
+                    company_run.bold = True
+
+                    # Add location if available
+                    if location:
+                        current_para.add_run(f", {location}")
+
+                    current_para.add_run("\n")
+
+                    # Apply font formatting to company name
+                    if original_font:
+                        company_run.font.name = original_font.name
+                        company_run.font.size = original_font.size
+
+                # Add job title and dates with tab spacing
+                date_range = f"\t{start_date} - {end_date}" if end_date else f"{start_date} - Present"
+                title_run = current_para.add_run(f"\t{title}  {date_range}\n")
+
+                if original_font:
+                    title_run.font.name = original_font.name
+                    title_run.font.size = original_font.size
+
+                # Process responsibilities as bullet points
+                if responsibilities:
+                    for responsibility in responsibilities.split(';'):
+                        if responsibility.strip():
+                            # Create a properly formatted bullet point with the dash and spaces
+                            bullet_run = current_para.add_run("•\t")
+
+                            resp_run = current_para.add_run(f"{responsibility.strip()}\n")
+
+                            # Preserve font formatting
+                            if original_font:
+                                bullet_run.font.name = original_font.name
+                                bullet_run.font.size = original_font.size
+                                resp_run.font.name = original_font.name
+                                resp_run.font.size = original_font.size
+
+                # Add space between job entries
+                current_para.add_run("\n")
+
+                # Update previous company
+                prev_company = company
+
     doc.save(output_file)
     print(f"Resume saved successfully as {output_file}")
 
-
-# Example usage
-populate_resume(person_id=1)
+populate_resume(1)
