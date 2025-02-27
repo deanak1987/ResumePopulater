@@ -1,9 +1,12 @@
 import sqlite3
 from docx import Document
+
 # from db_manager import get_employment_resume
 
 
 db_path = "resume.db"
+
+
 def fetch_resume_data(person_id):
     """Fetches all resume-related data from the database."""
     conn = sqlite3.connect("resume.db")  # Update with your actual DB path
@@ -44,7 +47,6 @@ def fetch_resume_data(person_id):
     )
     publications = cursor.fetchall()
 
-
     # Fetch employment details
     cursor.execute(
         """
@@ -55,7 +57,7 @@ def fetch_resume_data(person_id):
         GROUP BY E.company, E.location, E.job_title, E.start_date, E.end_date
         ORDER BY E.start_date DESC
         """,
-        (person_id,)
+        (person_id,),
     )
     employment = cursor.fetchall()
 
@@ -121,7 +123,7 @@ def replace_text_while_keeping_formatting(paragraph, key, value):
 
 
 def populate_resume(
-        person_id, template_path="template.docx", output_file="Resume.docx"
+    person_id, template_path="template.docx", output_file="Resume.docx"
 ):
     """Loads a Word template and replaces placeholders with actual data."""
     # from docx.shared import Pt, Inches
@@ -164,8 +166,12 @@ def populate_resume(
             # Clear the paragraph while keeping its style
             para.clear()
 
-            for title, authors, publication_date, venue, edition, pages in data["publications"]:
-                run = para.add_run(f"{authors}. ({publication_date}). {title}\n{venue}, {edition}, {pages}\n\n")
+            for title, authors, publication_date, venue, edition, pages in data[
+                "publications"
+            ]:
+                run = para.add_run(
+                    f"{authors}. ({publication_date}). {title}\n{venue}, {edition}, {pages}\n\n"
+                )
                 if original_font:
                     run.font.name = original_font.name
                     run.font.size = original_font.size
@@ -174,12 +180,19 @@ def populate_resume(
             # Clear the paragraph
             current_para = para
             current_para.clear()
-            prev_company = ''
+            prev_company = ""
 
             # Store the original paragraph format for resetting
             original_indent = para.paragraph_format.left_indent
 
-            for company, location, title, start_date, end_date, responsibilities in data["employment"]:
+            for (
+                company,
+                location,
+                title,
+                start_date,
+                end_date,
+                responsibilities,
+            ) in data["employment"]:
                 # Reset paragraph indentation for each new company
                 if prev_company != company:
                     # Reset to original indent (usually 0 for left margin)
@@ -201,7 +214,11 @@ def populate_resume(
                         company_run.font.size = original_font.size
 
                 # Add job title and dates with tab spacing
-                date_range = f"\t{start_date} - {end_date}" if end_date else f"{start_date} - Present"
+                date_range = (
+                    f"\t{start_date} - {end_date}"
+                    if end_date
+                    else f"{start_date} - Present"
+                )
                 title_run = current_para.add_run(f"\t{title}  {date_range}\n")
 
                 if original_font:
@@ -210,12 +227,14 @@ def populate_resume(
 
                 # Process responsibilities as bullet points
                 if responsibilities:
-                    for responsibility in responsibilities.split(';'):
+                    for responsibility in responsibilities.split(";"):
                         if responsibility.strip():
                             # Create a properly formatted bullet point with the dash and spaces
                             bullet_run = current_para.add_run("•\t")
 
-                            resp_run = current_para.add_run(f"{responsibility.strip()}\n")
+                            resp_run = current_para.add_run(
+                                f"{responsibility.strip()}\n"
+                            )
 
                             # Preserve font formatting
                             if original_font:
@@ -232,5 +251,6 @@ def populate_resume(
 
     doc.save(output_file)
     print(f"Resume saved successfully as {output_file}")
+
 
 populate_resume(1)

@@ -14,9 +14,9 @@ new_readme = re.sub(
     r"### Database Schema\n```\nsql\n.*?\n```\n",
     schema_text,
     readme_content,
-    flags=re.DOTALL
+    flags=re.DOTALL,
 )
-        # readme_content.split("### Database Schema")[0] + schema_text)
+# readme_content.split("### Database Schema")[0] + schema_text)
 
 with open("README.md", "w", encoding="utf-8") as f:
     readme_content = f.write(new_readme)

@@ -64,7 +64,15 @@ def test_add_education():
 
 def test_add_coursework():
     add_coursework(
-        db_test_path, 1, "General Chemistry Prep", "CHEM 139", "Autumn", 2012, 3.5, 5, "Chemistry"
+        db_test_path,
+        1,
+        "General Chemistry Prep",
+        "CHEM 139",
+        "Autumn",
+        2012,
+        3.5,
+        5,
+        "Chemistry",
     )
     results = fetch_data(db_test_path, query="SELECT * FROM Coursework")
     assert len(results) == 1
@@ -119,12 +127,19 @@ def test_add_employment():
         "June 2020",
         "Current",
         ["Did work", "Spoke to clients"],
-        ["General", "General"]
+        ["General", "General"],
     )
     # results = fetch_data(db_test_path, query="SELECT E.*, R.description FROM Employment AS E LEFT JOIN Responsibilities AS R ON R.employment_id = E.id")
     results = fetch_data(
         db_test_path,
-        query="SELECT E.*, GROUP_CONCAT(R.description, ',') AS responsibilities FROM Employment AS E LEFT JOIN Responsibilities AS R ON R.employment_id = E.id",
+        query="""
+            SELECT 
+        E.*, 
+        COALESCE(GROUP_CONCAT(R.description, ', '), '') AS responsibilities, 
+        COALESCE(GROUP_CONCAT(R.field, ', '), '') AS field 
+    FROM Employment AS E 
+    LEFT JOIN Responsibilities AS R ON R.employment_id = E.id 
+    GROUP BY E.id;""",
     )
     assert len(results) == 1
     assert results[0][2] == "Job Inc."
@@ -132,7 +147,8 @@ def test_add_employment():
     assert results[0][4] == "Worker"
     assert results[0][5] == "June 2020"
     assert results[0][6] == "Current"
-    assert results[0][7] == None# "Did work,Spoke to clients"
+    assert results[0][8] == "Did work, Spoke to clients"
+    assert results[0][9] == "General, General"
 
 
 def test_get_personal_info():
@@ -194,7 +210,15 @@ def test_get_education_with_coursework():
         db_test_path, 1, "Associate's of Art", "College", "Quarter", 2015, 3.75
     )
     add_coursework(
-        db_test_path, 1, "General Chemistry Prep", "CHEM 139", "Autumn", 2012, 3.5, 5, "Chemistry"
+        db_test_path,
+        1,
+        "General Chemistry Prep",
+        "CHEM 139",
+        "Autumn",
+        2012,
+        3.5,
+        5,
+        "Chemistry",
     )
     assert (
         get_education_with_coursework(db_test_path, 1)
@@ -216,7 +240,7 @@ def test_get_employment():
         "June 2020",
         "Current",
         ["Did work", "Spoke to clients"],
-        ["General", "General"]
+        ["General", "General"],
     )
     assert (
         get_employment(db_test_path, 1)

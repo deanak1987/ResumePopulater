@@ -231,44 +231,57 @@ def get_certifications(path, person_id):
     return output.strip()
 
 
+import sqlite3
+
 def add_employment(
-        path,
-        person_id,
-        company,
-        location,
-        job_title,
-        start_date,
-        end_date,
-        responsibilities,
-        fields
-    ):
+    path,
+    person_id,
+    company,
+    location,
+    job_title,
+    start_date,
+    end_date,
+    responsibilities,
+    fields,
+):
     """Adds an employment entry and associated responsibilities."""
     conn = sqlite3.connect(path)
     cursor = conn.cursor()
 
-    # Insert job details
-    cursor.execute(
-        """
-        INSERT INTO Employment (person_id, company, location, job_title, start_date, end_date)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """,
-        (person_id, company, location, job_title, start_date, end_date),
-    )
+    try:
+        # Insert job details
+        cursor.execute(
+            """
+            INSERT INTO Employment (person_id, company, location, job_title, start_date, end_date)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (person_id, company, location, job_title, start_date, end_date),
+        )
 
-    employment_id = cursor.lastrowid  # Get the last inserted job ID
+        employment_id = cursor.lastrowid  # Get the last inserted job ID
 
-    # Insert responsibilities
-    data = [(employment_id, desc, field) for desc, field in zip(responsibilities, fields)]
-    cursor.executemany(
-        "INSERT INTO Responsibilities (employment_id, description, field) VALUES (?, ?, ?)",
-        data,
-    )
+        # Insert responsibilities only if lists are not empty
+        if responsibilities and fields:
+            data = [
+                (employment_id, desc, field) for desc, field in zip(responsibilities, fields)
+            ]
+            cursor.executemany(
+                "INSERT INTO Responsibilities (employment_id, description, field) VALUES (?, ?, ?)",
+                data,
+            )
 
-    conn.commit()
-    conn.close()
-    print(
-        f"Added job at {company} ({job_title}) with {len(responsibilities)} responsibilities."
-    )
+        conn.commit()
+        print(
+            f"✅ Added job at {company} ({job_title}) with {len(responsibilities)} responsibilities."
+        )
+
+    except sqlite3.Error as e:
+        conn.rollback()  # Undo changes if there's an error
+        print(f"❌ Database error: {e}")
+
+    finally:
+        conn.close()  # Ensure the connection is closed
+
 
 
 def get_employment(path, person_id):
@@ -287,9 +300,7 @@ def get_employment(path, person_id):
             job_id, company, location, job_title, start_date, end_date = job
 
             # Fetch responsibilities correctly using job_id
-            responsibilities_query = (
-                "SELECT description, field FROM Responsibilities WHERE employment_id = ?"
-            )
+            responsibilities_query = "SELECT description, field FROM Responsibilities WHERE employment_id = ?"
             responsibilities_results = fetch_data(
                 path, responsibilities_query, (job_id,)
             )
@@ -304,6 +315,7 @@ def get_employment(path, person_id):
         output += "No work history."
 
     return output.strip()
+
 
 def get_employment_resume(path, person_id):
     """Fetches employment history along with responsibilities."""
@@ -328,7 +340,9 @@ def get_employment_resume(path, person_id):
                 path, responsibilities_query, (job_id,)
             )
 
-            output += f"{company}\n\t{job_title}, {location}\t{start_date} - {end_date}\n"
+            output += (
+                f"{company}\n\t{job_title}, {location}\t{start_date} - {end_date}\n"
+            )
             output += "".join(
                 f"\t• {resp[0]}\n" for resp in responsibilities_results
             )  # Unpack tuple correctly
@@ -337,11 +351,11 @@ def get_employment_resume(path, person_id):
         output += "No work history."
     return output.strip()
 
+
 def get_schema(path):
-    """ Fetches SQL DB schema"""
+    """Fetches SQL DB schema"""
     query = """
     SELECT sql FROM sqlite_master WHERE type='table'
     """
     results = fetch_data(path, query=query)
     return results
-
