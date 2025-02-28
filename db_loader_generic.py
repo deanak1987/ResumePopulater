@@ -12,8 +12,8 @@ from db_manager import (
     get_education_with_coursework,
 )
 
-if __name__ == "__main__":
-    db_path = r"/\resume_gen.db"
+def load_generic(db_path):
+    # db_path = r"/\resume_gen.db"
 
     db_builder(db_path)
     add_personal_info(
@@ -32,14 +32,14 @@ if __name__ == "__main__":
 
     # OC Courses
     add_coursework(
-        db_path, 1, "General Chemistry Prep", "CHEM 139", "Autumn", 2012, 3.5, 5
+        db_path, 1, "General Chemistry Prep", "CHEM 139", "Autumn", 2012, 3.5, 5, "Chemistry"
     )
     add_coursework(
-        db_path, 1, "Precalculus I: Algebra", "MATH 141", "Autumn", 2012, 3.1, 5
+        db_path, 1, "Precalculus I: Algebra", "MATH 141", "Autumn", 2012, 3.1, 5, "Math"
     )
-    add_coursework(db_path, 1, "Spanish I ", "SPAN 121", "Autumn", 2012, 4, 5)
+    add_coursework(db_path, 1, "Spanish I ", "SPAN 121", "Autumn", 2012, 4, 5, "Language")
     add_coursework(
-        db_path, 1, "General Chemistry I", "CHEM 141", "Winter", 2013, 3.8, 5
+        db_path, 1, "General Chemistry I", "CHEM 141", "Winter", 2013, 3.8, 5, "Chemistry"
     )
 
     add_publication(

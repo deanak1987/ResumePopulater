@@ -231,7 +231,7 @@ def get_certifications(path, person_id):
     return output.strip()
 
 
-import sqlite3
+
 
 def add_employment(
     path,
@@ -263,7 +263,8 @@ def add_employment(
         # Insert responsibilities only if lists are not empty
         if responsibilities and fields:
             data = [
-                (employment_id, desc, field) for desc, field in zip(responsibilities, fields)
+                (employment_id, desc, field)
+                for desc, field in zip(responsibilities, fields)
             ]
             cursor.executemany(
                 "INSERT INTO Responsibilities (employment_id, description, field) VALUES (?, ?, ?)",
@@ -281,7 +282,6 @@ def add_employment(
 
     finally:
         conn.close()  # Ensure the connection is closed
-
 
 
 def get_employment(path, person_id):
