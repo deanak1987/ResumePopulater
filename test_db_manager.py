@@ -179,7 +179,7 @@ def test_get_person_info():
     )
     assert (
         get_person_info(db_test_path, 1)
-        == "('John Smith', 'john.smith@email.com', '555-555-5555', 'linkedin.com/in/john-smith', 'github.com/john-smith')\n"
+        == ('John Smith', 'john.smith@email.com', '555-555-5555', 'linkedin.com/in/john-smith', 'github.com/john-smith')
     )
 
 
