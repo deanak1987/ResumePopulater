@@ -113,7 +113,7 @@ def test_add_certification():
     assert len(results) == 1
     assert results[0][2] == "Cool Dude"
     assert results[0][3] == "Studs"
-    assert results[0][4] == "2017"
+    assert results[0][4] == 2017
     assert results[0][5] is None
     assert results[0][6] == "Cool Guys"
 
@@ -186,12 +186,12 @@ def test_get_person_info():
 def test_get_certifications():
     assert (
             get_certifications(db_test_path, 1)
-            == []
+            == None
     )
     add_certification(db_test_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys")
     assert (
         get_certifications(db_test_path, 1)
-        == "Cool Dude", "Studs", 2017, None, "Cool Guys"
+        == ("Cool Dude", "Studs", 2017, None, "Cool Guys")
     )
 
 
@@ -210,21 +210,21 @@ def test_get_certifications():
 
 def test_get_education():
     assert (
-        get_education(db_test_path, 1) == []
+        get_education(db_test_path, 1) == None
     )
     add_education(
         db_test_path, 1, "Associate's of Art", "College", "Quarter", 2015, 3.75
     )
     assert (
         get_education(db_test_path, 1)
-        == "Associate's of Art", "College", 2015, 3.75
+        == ("Associate's of Art", "College", 2015, 3.75)
     )
 
 
 def test_get_publications():
     assert (
             get_publications(db_test_path, 1)
-            == []
+            == None
     )
     add_publication(
         db_test_path,
@@ -238,7 +238,7 @@ def test_get_publications():
     )
     assert (
         get_publications(db_test_path, 1)
-        == "Creating Cool Stuff.", "smith, J", 2024, "Cool Stuff", "2024(3)", "126-221"
+        == ("Creating Cool Stuff.", "smith, J", 2024, "Cool Stuff", "2024(3)", "126-221")
     )
 
 
@@ -266,7 +266,7 @@ def test_get_education_with_coursework():
 def test_get_employment():
     assert (
         get_employment(db_test_path, 1)
-        == []
+        == None
     )
     add_employment(
         db_test_path,
@@ -281,5 +281,5 @@ def test_get_employment():
     )
     assert (
         get_employment(db_test_path, 1)
-        == "Job Inc.", "Seattle, WA", "Worker", "June 2020", "Current", ["Did work", "Spoke to clients"], ["General", "General"]
+        == ("Job Inc.", "Seattle, WA", "Worker", "June 2020", "Current", "Did work;Spoke to clients", "General;General")
     )

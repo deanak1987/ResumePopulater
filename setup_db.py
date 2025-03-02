@@ -83,7 +83,7 @@ def db_builder(db_path):
         person_id INTEGER,
         certification_name TEXT,
         issuing_organization TEXT,
-        date_obtained TEXT,
+        date_obtained INTEGER,
         expiration_date TEXT,
         field TEXT
     );

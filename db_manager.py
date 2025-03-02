@@ -137,7 +137,7 @@ def get_education(path, person_id):
         WHERE Education.person_id = ?
         ORDER BY Education.graduation_year DESC
     """
-    return fetch_data(path, query, (person_id,))
+    return fetch_one_data(path, query, (person_id,))
 
 
 
@@ -188,7 +188,7 @@ def get_publications(path, person_id):
         WHERE Publications.person_id = ?
         ORDER BY Publications.publication_date DESC
     """
-    return fetch_data(path, query, (person_id,))
+    return fetch_one_data(path, query, (person_id,))
 
 
 
@@ -231,7 +231,7 @@ def get_certifications(path, person_id):
         WHERE Certifications.person_id = ?
         ORDER BY Certifications.date_obtained DESC
     """
-    return fetch_data(path, query, (person_id,))
+    return fetch_one_data(path, query, (person_id,))
 
 
 
@@ -321,7 +321,7 @@ def add_employment(
 def get_employment(path, person_id):
     """Fetches employment history along with responsibilities."""
     query = """
-        SELECT E.company, E.location, E.job_title, E.start_date, E.end_date, GROUP_CONCAT(R.description, ';') AS responsibilities 
+        SELECT E.company, E.location, E.job_title, E.start_date, E.end_date, GROUP_CONCAT(R.description, ';') AS responsibilities, GROUP_CONCAT(R.field, ';') AS field 
         FROM Employment AS E 
         LEFT JOIN Responsibilities AS R ON R.employment_id = E.id
         WHERE E.person_id = ?
@@ -329,7 +329,7 @@ def get_employment(path, person_id):
         ORDER BY E.start_date DESC
     """
 
-    return fetch_data(path, query, (person_id,))
+    return fetch_one_data(path, query, (person_id,))
 
 #
 # def get_employment_resume(path, person_id):
