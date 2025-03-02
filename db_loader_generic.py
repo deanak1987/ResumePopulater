@@ -11,11 +11,13 @@ from db_manager import (
     get_personal_info,
     get_education_with_coursework,
 )
+import os
 
 
 def load_generic(db_path):
     # db_path = r"/\resume_gen.db"
-
+    if os.path.exists(db_path):
+        os.remove(db_path)
     db_builder(db_path)
     add_personal_info(
         db_path,

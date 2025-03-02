@@ -109,6 +109,26 @@ def add_coursework(
     )
 
 
+# def get_education(path, person_id):
+#     """Fetches education records for a person."""
+#     query = """
+#         SELECT Education.degree, Education.institution, Education.graduation_year, Education.graduation_gpa
+#         FROM Education
+#         WHERE Education.person_id = ?
+#         ORDER BY Education.graduation_year DESC
+#     """
+#     results = fetch_data(path, query, (person_id,))
+#
+#     output = ""
+#     if results:
+#         output += f"Education for Person ID {person_id}:\n"
+#         for row in results:
+#             degree, institution, grad_year, gpa = row
+#             output += f"{degree} from {institution} acquired in {grad_year} with a GPA of {gpa}\n"
+#     else:
+#         output += f"No education records found for Person ID {person_id}."
+#     return output
+
 def get_education(path, person_id):
     """Fetches education records for a person."""
     query = """
@@ -117,17 +137,8 @@ def get_education(path, person_id):
         WHERE Education.person_id = ?
         ORDER BY Education.graduation_year DESC
     """
-    results = fetch_data(path, query, (person_id,))
+    return fetch_data(path, query, (person_id,))
 
-    output = ""
-    if results:
-        output += f"Education for Person ID {person_id}:\n"
-        for row in results:
-            degree, institution, grad_year, gpa = row
-            output += f"{degree} from {institution} acquired in {grad_year} with a GPA of {gpa}\n"
-    else:
-        output += f"No education records found for Person ID {person_id}."
-    return output
 
 
 def get_education_with_coursework(path, person_id):
@@ -172,21 +183,13 @@ def add_publication(
 def get_publications(path, person_id):
     """Fetches publication records for a person."""
     query = """
-        SELECT Publications.title, Publications.authors, Publications.publication_date, Publications.venue, Publications.edition, Publications.pages 
+        SELECT Publications.title, Publications.authors, Publications.publication_date, Publications.venue, Publications.edition, Publications.pages
         FROM Publications
         WHERE Publications.person_id = ?
         ORDER BY Publications.publication_date DESC
     """
-    results = fetch_data(path, query, (person_id,))
-    output = ""
-    if results:
-        output += f"Publications for Person ID {person_id}:\n"
-        for row in results:
-            title, authors, publication_date, venue, edition, pages = row
-            output += f"{authors}. ({publication_date}). {title}\n{venue},{edition}, {pages}\n"
-    else:
-        output += f"\nNo publication records found for Person ID {person_id}."
-    return output
+    return fetch_data(path, query, (person_id,))
+
 
 
 def add_certification(
@@ -223,28 +226,13 @@ def add_certification(
 def get_certifications(path, person_id):
     """Fetches certification records for a person."""
     query = """
-        SELECT Certifications.certification_name, Certifications.issuing_organization, Certifications.date_obtained, Certifications.expiration_date, Certifications.field 
+        SELECT Certifications.certification_name, Certifications.issuing_organization, Certifications.date_obtained, Certifications.expiration_date, Certifications.field
         FROM Certifications
         WHERE Certifications.person_id = ?
         ORDER BY Certifications.date_obtained DESC
     """
-    results = fetch_data(path, query, (person_id,))
-    output = ""
-    if results:
-        output += f"Certifications for Person ID {person_id}:\n"
-        for row in results:
-            (
-                certification_name,
-                issuing_organization,
-                date_obtained,
-                expiration_date,
-                field,
-            ) = row
-            output += f"{certification_name} issued by {issuing_organization} on {date_obtained}, in field of {field}. Expires: {expiration_date}\n"
+    return fetch_data(path, query, (person_id,))
 
-    else:
-        output += f"No certification records found for Person ID {person_id}."
-    return output.strip()
 
 
 def add_employment(
@@ -296,74 +284,87 @@ def add_employment(
 
     finally:
         conn.close()  # Ensure the connection is closed
-
+#
+#
+# def get_employment(path, person_id):
+#     """Fetches employment history along with responsibilities."""
+#     query = """
+#         SELECT e.id, e.company, e.location, e.job_title, e.start_date, e.end_date
+#         FROM Employment e
+#         WHERE e.person_id = ?
+#         ORDER BY e.start_date DESC
+#     """
+#
+#     results = fetch_data(path, query, (person_id,))
+#     output = f"Employment history for Person ID {person_id}:\n"
+#     if results:
+#         for job in results:
+#             job_id, company, location, job_title, start_date, end_date = job
+#
+#             # Fetch responsibilities correctly using job_id
+#             responsibilities_query = "SELECT description, field FROM Responsibilities WHERE employment_id = ?"
+#             responsibilities_results = fetch_data(
+#                 path, responsibilities_query, (job_id,)
+#             )
+#
+#             output += f"Worked for {company} as {job_title} at {location} from {start_date} - {end_date} with the following responsibilities:\n"
+#             output += "".join(
+#                 f"\t• {resp[0]}\n" for resp in responsibilities_results
+#             )  # Unpack tuple correctly
+#             output += "\n"  # Extra line break between jobs
+#
+#     else:
+#         output += "No work history."
+#
+#     return output.strip()
 
 def get_employment(path, person_id):
     """Fetches employment history along with responsibilities."""
     query = """
-        SELECT e.id, e.company, e.location, e.job_title, e.start_date, e.end_date
-        FROM Employment e
-        WHERE e.person_id = ?
-        ORDER BY e.start_date DESC
+        SELECT E.company, E.location, E.job_title, E.start_date, E.end_date, GROUP_CONCAT(R.description, ';') AS responsibilities 
+        FROM Employment AS E 
+        LEFT JOIN Responsibilities AS R ON R.employment_id = E.id
+        WHERE E.person_id = ?
+        GROUP BY E.company, E.location, E.job_title, E.start_date, E.end_date
+        ORDER BY E.start_date DESC
     """
 
-    results = fetch_data(path, query, (person_id,))
-    output = f"Employment history for Person ID {person_id}:\n"
-    if results:
-        for job in results:
-            job_id, company, location, job_title, start_date, end_date = job
+    return fetch_data(path, query, (person_id,))
 
-            # Fetch responsibilities correctly using job_id
-            responsibilities_query = "SELECT description, field FROM Responsibilities WHERE employment_id = ?"
-            responsibilities_results = fetch_data(
-                path, responsibilities_query, (job_id,)
-            )
-
-            output += f"Worked for {company} as {job_title} at {location} from {start_date} - {end_date} with the following responsibilities:\n"
-            output += "".join(
-                f"\t• {resp[0]}\n" for resp in responsibilities_results
-            )  # Unpack tuple correctly
-            output += "\n"  # Extra line break between jobs
-
-    else:
-        output += "No work history."
-
-    return output.strip()
-
-
-def get_employment_resume(path, person_id):
-    """Fetches employment history along with responsibilities."""
-    query = """
-        SELECT e.id, e.company, e.location, e.job_title, e.start_date, e.end_date
-        FROM Employment e
-        WHERE e.person_id = ?
-        ORDER BY e.start_date DESC
-    """
-
-    results = fetch_data(path, query, (person_id,))
-    output = ""
-    if results:
-        for job in results:
-            job_id, company, location, job_title, start_date, end_date = job
-
-            # Fetch responsibilities correctly using job_id
-            responsibilities_query = (
-                "SELECT description FROM Responsibilities WHERE employment_id = ?"
-            )
-            responsibilities_results = fetch_data(
-                path, responsibilities_query, (job_id,)
-            )
-
-            output += (
-                f"{company}\n\t{job_title}, {location}\t{start_date} - {end_date}\n"
-            )
-            output += "".join(
-                f"\t• {resp[0]}\n" for resp in responsibilities_results
-            )  # Unpack tuple correctly
-            output += "\n"  # Extra line break between jobs
-    else:
-        output += "No work history."
-    return output.strip()
+#
+# def get_employment_resume(path, person_id):
+#     """Fetches employment history along with responsibilities."""
+#     query = """
+#         SELECT e.id, e.company, e.location, e.job_title, e.start_date, e.end_date
+#         FROM Employment e
+#         WHERE e.person_id = ?
+#         ORDER BY e.start_date DESC
+#     """
+#
+#     results = fetch_data(path, query, (person_id,))
+#     output = ""
+#     if results:
+#         for job in results:
+#             job_id, company, location, job_title, start_date, end_date = job
+#
+#             # Fetch responsibilities correctly using job_id
+#             responsibilities_query = (
+#                 "SELECT description FROM Responsibilities WHERE employment_id = ?"
+#             )
+#             responsibilities_results = fetch_data(
+#                 path, responsibilities_query, (job_id,)
+#             )
+#
+#             output += (
+#                 f"{company}\n\t{job_title}, {location}\t{start_date} - {end_date}\n"
+#             )
+#             output += "".join(
+#                 f"\t• {resp[0]}\n" for resp in responsibilities_results
+#             )  # Unpack tuple correctly
+#             output += "\n"  # Extra line break between jobs
+#     else:
+#         output += "No work history."
+#     return output.strip()
 
 
 def get_schema(path):

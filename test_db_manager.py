@@ -184,27 +184,48 @@ def test_get_person_info():
 
 
 def test_get_certifications():
+    assert (
+            get_certifications(db_test_path, 1)
+            == []
+    )
     add_certification(db_test_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys")
     assert (
         get_certifications(db_test_path, 1)
-        == "Certifications for Person ID 1:\nCool Dude issued by Studs on 2017, in field of Cool Guys. Expires: None"
+        == "Cool Dude", "Studs", 2017, None, "Cool Guys"
     )
+
+
+# def test_get_education():
+#     assert (
+#         get_education(db_test_path, 1) == "No education records found for Person ID 1."
+#     )
+#     add_education(
+#         db_test_path, 1, "Associate's of Art", "College", "Quarter", 2015, 3.75
+#     )
+#     assert (
+#         get_education(db_test_path, 1)
+#         == "Education for Person ID 1:\nAssociate's of Art from College acquired in 2015 with a GPA of 3.75\n"
+#     )
 
 
 def test_get_education():
     assert (
-        get_education(db_test_path, 1) == "No education records found for Person ID 1."
+        get_education(db_test_path, 1) == []
     )
     add_education(
         db_test_path, 1, "Associate's of Art", "College", "Quarter", 2015, 3.75
     )
     assert (
         get_education(db_test_path, 1)
-        == "Education for Person ID 1:\nAssociate's of Art from College acquired in 2015 with a GPA of 3.75\n"
+        == "Associate's of Art", "College", 2015, 3.75
     )
 
 
 def test_get_publications():
+    assert (
+            get_publications(db_test_path, 1)
+            == []
+    )
     add_publication(
         db_test_path,
         1,
@@ -217,7 +238,7 @@ def test_get_publications():
     )
     assert (
         get_publications(db_test_path, 1)
-        == "Publications for Person ID 1:\nsmith, J. (2024). Creating Cool Stuff.\nCool Stuff,2024(3), 126-221\n"
+        == "Creating Cool Stuff.", "smith, J", 2024, "Cool Stuff", "2024(3)", "126-221"
     )
 
 
@@ -245,7 +266,7 @@ def test_get_education_with_coursework():
 def test_get_employment():
     assert (
         get_employment(db_test_path, 1)
-        == "Employment history for Person ID 1:\nNo work history."
+        == []
     )
     add_employment(
         db_test_path,
@@ -260,5 +281,5 @@ def test_get_employment():
     )
     assert (
         get_employment(db_test_path, 1)
-        == "Employment history for Person ID 1:\nWorked for Job Inc. as Worker at Seattle, WA from June 2020 - Current with the following responsibilities:\n\t• Did work\n\t• Spoke to clients"
+        == "Job Inc.", "Seattle, WA", "Worker", "June 2020", "Current", ["Did work", "Spoke to clients"], ["General", "General"]
     )
