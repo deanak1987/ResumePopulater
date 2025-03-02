@@ -4,12 +4,11 @@ from docx import Document
 # from db_manager import get_employment_resume
 
 
-db_path = "resume.db"
 
 
-def fetch_resume_data(person_id):
+def fetch_resume_data(db_path, person_id):
     """Fetches all resume-related data from the database."""
-    conn = sqlite3.connect("resume.db")  # Update with your actual DB path
+    conn = sqlite3.connect(db_path)  # Update with your actual DB path
     cursor = conn.cursor()
 
     # Fetch personal details
@@ -123,14 +122,14 @@ def replace_text_while_keeping_formatting(paragraph, key, value):
 
 
 def populate_resume(
-    person_id, template_path="template.docx", output_file="Resume.docx"
+    person_id, db_path, template_path="template.docx", output_file="Resume.docx"
 ):
     """Loads a Word template and replaces placeholders with actual data."""
     # from docx.shared import Pt, Inches
     # from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
     doc = Document(template_path)
-    data = fetch_resume_data(person_id)
+    data = fetch_resume_data(db_path, person_id)
 
     # Replace single-value placeholders while maintaining formatting
     for para in doc.paragraphs:
@@ -253,4 +252,4 @@ def populate_resume(
     print(f"Resume saved successfully as {output_file}")
 
 
-populate_resume(1)
+populate_resume(1, db_path = "resume.db")

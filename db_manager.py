@@ -19,6 +19,15 @@ def fetch_data(path, query, params=()):
     conn.close()
     return results
 
+def fetch_one_data(path, query, params=()):
+    """Fetches data based on a given SQL query."""
+    conn = sqlite3.connect(path)
+    cursor = conn.cursor()
+    cursor.execute(query, params)
+    results = cursor.fetchone()
+    conn.close()
+    return results
+
 
 # Example: Adding a new personal info record
 def add_personal_info(path, name, email, phone, linkedin, github, portfolio):
@@ -37,6 +46,13 @@ def get_personal_info(path):
         output += f"{row}\n"
     return output
 
+def get_person_info(path, person_id):
+    query = """
+    SELECT full_name, email, phone, linkedin, github 
+    FROM Personal_Info WHERE id = ?
+    """
+    result = fetch_one_data(path, query, (person_id,))
+    return result
 
 def delete_and_reset_ids(path, table, row_id):
     """Deletes a row and resets ID values to maintain sequential order."""
@@ -229,8 +245,6 @@ def get_certifications(path, person_id):
     else:
         output += f"No certification records found for Person ID {person_id}."
     return output.strip()
-
-
 
 
 def add_employment(

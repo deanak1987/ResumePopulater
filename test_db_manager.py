@@ -11,6 +11,7 @@ from db_manager import (
     get_education,
     get_publications,
     get_personal_info,
+    get_person_info,
     get_education_with_coursework,
     add_employment,
     get_employment,
@@ -164,6 +165,21 @@ def test_get_personal_info():
     assert (
         get_personal_info(db_test_path)
         == "(1, 'John Smith', 'john.smith@email.com', '555-555-5555', 'linkedin.com/in/john-smith', 'github.com/john-smith', None)\n"
+    )
+
+def test_get_person_info():
+    add_personal_info(
+        db_test_path,
+        "John Smith",
+        "john.smith@email.com",
+        "555-555-5555",
+        "linkedin.com/in/john-smith",
+        "github.com/john-smith",
+        None,
+    )
+    assert (
+        get_person_info(db_test_path)
+        == "('John Smith', 'john.smith@email.com', '555-555-5555', 'linkedin.com/in/john-smith', 'github.com/john-smith')\n"
     )
 
 
