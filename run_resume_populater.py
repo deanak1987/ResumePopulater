@@ -6,8 +6,8 @@ from db_manager import get_person_info, get_education, get_employment
 db_path = r"resume.db"
 setup_db.db_builder(db_path)
 load_info(db_path)
-full_name, email, phone, linkedin, github = get_person_info(db_path, 1)
-print(f"{full_name}, {email}, {phone}, {linkedin}, {github}")
+full_name, email, linkedin, github = get_person_info(db_path, 1)
+print(f"{full_name}, {email}, {linkedin}, {github}")
 
 eds = get_education(db_path, 1)
 for ed in eds:

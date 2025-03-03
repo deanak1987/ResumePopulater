@@ -48,7 +48,7 @@ def get_personal_info(path):
 
 def get_person_info(path, person_id):
     query = """
-    SELECT full_name, email, phone, linkedin, github 
+    SELECT full_name, email, linkedin, github 
     FROM Personal_Info WHERE id = ?
     """
     result = fetch_one_data(path, query, (person_id,))
@@ -137,7 +137,7 @@ def get_education(path, person_id):
         WHERE Education.person_id = ?
         ORDER BY Education.graduation_year DESC
     """
-    return fetch_one_data(path, query, (person_id,))
+    return fetch_data(path, query, (person_id,))
 
 
 
@@ -188,7 +188,7 @@ def get_publications(path, person_id):
         WHERE Publications.person_id = ?
         ORDER BY Publications.publication_date DESC
     """
-    return fetch_one_data(path, query, (person_id,))
+    return fetch_data(path, query, (person_id,))
 
 
 
@@ -231,7 +231,7 @@ def get_certifications(path, person_id):
         WHERE Certifications.person_id = ?
         ORDER BY Certifications.date_obtained DESC
     """
-    return fetch_one_data(path, query, (person_id,))
+    return fetch_data(path, query, (person_id,))
 
 
 
@@ -329,7 +329,7 @@ def get_employment(path, person_id):
         ORDER BY E.start_date DESC
     """
 
-    return fetch_one_data(path, query, (person_id,))
+    return fetch_data(path, query, (person_id,))
 
 #
 # def get_employment_resume(path, person_id):

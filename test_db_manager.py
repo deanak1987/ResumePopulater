@@ -179,18 +179,18 @@ def test_get_person_info():
     )
     assert (
         get_person_info(db_test_path, 1)
-        == ('John Smith', 'john.smith@email.com', '555-555-5555', 'linkedin.com/in/john-smith', 'github.com/john-smith')
+        == ('John Smith', 'john.smith@email.com', 'linkedin.com/in/john-smith', 'github.com/john-smith')
     )
 
 
 def test_get_certifications():
     assert (
             get_certifications(db_test_path, 1)
-            == None
+            == []
     )
     add_certification(db_test_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys")
     assert (
-        get_certifications(db_test_path, 1)
+        get_certifications(db_test_path, 1)[0]
         == ("Cool Dude", "Studs", 2017, None, "Cool Guys")
     )
 
@@ -210,13 +210,13 @@ def test_get_certifications():
 
 def test_get_education():
     assert (
-        get_education(db_test_path, 1) == None
+        get_education(db_test_path, 1) == []
     )
     add_education(
         db_test_path, 1, "Associate's of Art", "College", "Quarter", 2015, 3.75
     )
     assert (
-        get_education(db_test_path, 1)
+        get_education(db_test_path, 1)[0]
         == ("Associate's of Art", "College", 2015, 3.75)
     )
 
@@ -224,7 +224,7 @@ def test_get_education():
 def test_get_publications():
     assert (
             get_publications(db_test_path, 1)
-            == None
+            == []
     )
     add_publication(
         db_test_path,
@@ -237,7 +237,7 @@ def test_get_publications():
         "126-221",
     )
     assert (
-        get_publications(db_test_path, 1)
+        get_publications(db_test_path, 1)[0]
         == ("Creating Cool Stuff.", "smith, J", 2024, "Cool Stuff", "2024(3)", "126-221")
     )
 
@@ -266,7 +266,7 @@ def test_get_education_with_coursework():
 def test_get_employment():
     assert (
         get_employment(db_test_path, 1)
-        == None
+        == []
     )
     add_employment(
         db_test_path,
@@ -280,6 +280,6 @@ def test_get_employment():
         ["General", "General"],
     )
     assert (
-        get_employment(db_test_path, 1)
+        get_employment(db_test_path, 1)[0]
         == ("Job Inc.", "Seattle, WA", "Worker", "June 2020", "Current", "Did work;Spoke to clients", "General;General")
     )

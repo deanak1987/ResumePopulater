@@ -1,70 +1,22 @@
 import sqlite3
 from docx import Document
-
-# from db_manager import get_employment_resume
-
-
-
+from db_manager import get_employment, get_publications, get_education, get_person_info
 
 def fetch_resume_data(db_path, person_id):
     """Fetches all resume-related data from the database."""
-    conn = sqlite3.connect(db_path)  # Update with your actual DB path
-    cursor = conn.cursor()
 
-    # Fetch personal details
-    cursor.execute(
-        """
-    SELECT Personal_Info.full_name, Personal_Info.email, Personal_Info.linkedin 
-    FROM Personal_Info WHERE id = ?
-    """,
-        (person_id,),
-    )
-    person = cursor.fetchone()
-    full_name, email, linkedin = person if person else ("", "", "")
+    person = get_person_info(db_path, person_id)# cursor.fetchone()
+    print(person)
+    (full_name, email, linkedin, github) = person
+    education = get_education(db_path, person_id)# cursor.fetchall()
+    publications = get_publications(db_path, person_id)#cursor.fetchall()
+    employment = get_employment(db_path, person_id)#cursor.fetchall()
 
-    # Fetch education details
-    cursor.execute(
-        """
-        SELECT Education.degree, Education.institution, Education.graduation_year, Education.graduation_gpa
-        FROM Education
-        WHERE Education.person_id = ?
-        ORDER BY Education.graduation_year DESC
-    """,
-        (person_id,),
-    )
-    education = cursor.fetchall()
-
-    # Fetch publication details
-    cursor.execute(
-        """
-        SELECT Publications.title, Publications.authors, Publications.publication_date, Publications.venue, Publications.edition, Publications.pages 
-        FROM Publications
-        WHERE Publications.person_id = ?
-        ORDER BY Publications.publication_date DESC
-    """,
-        (person_id,),
-    )
-    publications = cursor.fetchall()
-
-    # Fetch employment details
-    cursor.execute(
-        """
-        SELECT E.company, E.location, E.job_title, E.start_date, E.end_date, GROUP_CONCAT(R.description, ';') AS responsibilities 
-        FROM Employment AS E 
-        LEFT JOIN Responsibilities AS R ON R.employment_id = E.id
-        WHERE E.person_id = ?
-        GROUP BY E.company, E.location, E.job_title, E.start_date, E.end_date
-        ORDER BY E.start_date DESC
-        """,
-        (person_id,),
-    )
-    employment = cursor.fetchall()
-
-    conn.close()
     return {
         "full_name": full_name,
         "email": email,
         "linkedin": linkedin,
+        "github": github,
         "education": education,
         "employment": employment,
         "publications": publications,
@@ -136,6 +88,7 @@ def populate_resume(
         replace_text_while_keeping_formatting(para, "{full_name}", data["full_name"])
         replace_text_while_keeping_formatting(para, "{email}", data["email"])
         replace_text_while_keeping_formatting(para, "{linkedin}", data["linkedin"])
+        replace_text_while_keeping_formatting(para, "{github}", data["github"])
 
     # Handle education, publications and employment sections
     for para in doc.paragraphs:
@@ -184,14 +137,9 @@ def populate_resume(
             # Store the original paragraph format for resetting
             original_indent = para.paragraph_format.left_indent
 
-            for (
-                company,
-                location,
-                title,
-                start_date,
-                end_date,
-                responsibilities,
-            ) in data["employment"]:
+            for position in data["employment"]:
+                company, location, title, start_date, end_date, responsibilities, fields = position
+                print(position)
                 # Reset paragraph indentation for each new company
                 if prev_company != company:
                     # Reset to original indent (usually 0 for left margin)
