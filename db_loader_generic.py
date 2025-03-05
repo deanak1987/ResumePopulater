@@ -7,11 +7,13 @@ from db_manager import (
     add_personal_info,
     add_employment,
     add_professional_development,
+    add_skills,
     get_certifications,
     get_education,
     get_publications,
     get_personal_info,
     get_education_with_coursework,
+    get_skills,
 )
 import os
 
@@ -105,9 +107,17 @@ def load_generic(db_path):
         ["Working Hard"]
     )
 
+    add_skills(
+        db_path,
+        1,
+        "Working",
+        ["Working hard", "Don't stop"]
+    )
+
     add_certification(db_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys")
     # Fetch education with coursework for Person ID = 1
     get_education(db_path, 1)
     get_education_with_coursework(db_path, 1)
     get_publications(db_path, 1)
     get_certifications(db_path, 1)
+    get_skills(db_path, 1)

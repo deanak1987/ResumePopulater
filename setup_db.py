@@ -74,8 +74,14 @@ def db_builder(db_path):
     
     CREATE TABLE IF NOT EXISTS Skills (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        skill_name TEXT,
-        proficiency_level TEXT
+        person_id INTEGER,
+        skill TEXT
+    );
+    
+    CREATE TABLE IF NOT EXISTS SkillDetails (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        skill_id INTEGER,
+        detail TEXT
     );
     
     CREATE TABLE IF NOT EXISTS Certifications (

@@ -7,6 +7,7 @@ from db_manager import (
     get_education,
     get_employment,
     get_professional_development,
+    get_skills,
 )
 
 db_path = r"resume.db"
@@ -30,6 +31,11 @@ print("\nProfessional Development")
 pds = get_professional_development(db_path, 1)
 for pd in pds:
     print(pd)
+
+print("\nSkills")
+sk = get_skills(db_path, 1)
+for s in sk:
+    print(s)
 # job_url = "https://www.governmentjobs.com/careers/tacoma/jobs/4779178/customer-service-representative"  # Replace with actual job URL
 # job_info = scrape_job(job_url)
 #

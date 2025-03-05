@@ -402,6 +402,65 @@ def get_professional_development(path, person_id):
         print(f"❌ Database error: {e}")
         return []
 
+def add_skills(
+    path,
+    person_id,
+    skill,
+    details
+):
+    """Adds a professional development entry to the database."""
+    try:
+        with sqlite3.connect(path) as conn:
+            cursor = conn.cursor()
+
+            # Insert professional development entry
+            cursor.execute(
+                """
+                INSERT INTO Skills (person_id, skill)
+                VALUES (?, ?)
+                """,
+                (
+                    person_id,
+                    skill,
+                ),
+            )
+            skill_id = cursor.lastrowid  # Get the last inserted ID
+
+            # Insert covered topics only if 'covered' is a non-empty list
+            if details and isinstance(details, list):
+                data = [(skill_id, item) for item in details]
+                cursor.executemany(
+                    "INSERT INTO SkillDetails (skill_id, detail) VALUES (?, ?)", data
+                )
+
+            conn.commit()
+            print(
+                f"✅ Added skill: {skill}SkillDetails for person_id: {person_id}"
+            )
+
+    except sqlite3.Error as e:
+        print(f"❌ Database error: {e}")
+
+
+def get_skills(path, person_id):
+    """Fetches professional development records for a person."""
+    query = """
+        SELECT S.skill, GROUP_CONCAT(D.detail, ';') AS details 
+        FROM Skills AS S
+        LEFT JOIN SkillDetails AS D ON D.skill_id = S.id
+        WHERE S.person_id = ?
+        GROUP BY S.id
+    """
+    try:
+        with sqlite3.connect(path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, (person_id,))
+            return cursor.fetchall()
+
+    except sqlite3.Error as e:
+        print(f"❌ Database error: {e}")
+        return []
+
 
 def get_schema(path):
     """Fetches SQL DB schema"""
