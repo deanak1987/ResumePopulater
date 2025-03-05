@@ -94,6 +94,21 @@ CREATE TABLE Publications (
         edition TEXT,
         pages TEXT
     )
+CREATE TABLE ProfessionalDevelopment (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        person_id INTEGER,
+        certification_name TEXT,
+        issuing_organization TEXT,
+        date_completed INTEGER,
+        context TEXT,
+        field TEXT
+    )
+CREATE TABLE PDCovered (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            prof_dev_id INTEGER,
+            covered TEXT,
+            FOREIGN KEY (prof_dev_id) REFERENCES ProfessionalDevelopment(id) ON DELETE CASCADE
+    )
 CREATE TABLE Custom_Resume_Criteria (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         target_job_title TEXT,
