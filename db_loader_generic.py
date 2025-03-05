@@ -5,6 +5,8 @@ from db_manager import (
     add_certification,
     add_publication,
     add_personal_info,
+    add_employment,
+    add_professional_development,
     get_certifications,
     get_education,
     get_publications,
@@ -72,6 +74,35 @@ def load_generic(db_path):
         "Cool Stuff",
         "2024(3)",
         "126–221",
+    )
+
+    add_employment(
+        db_path,
+        1,
+        "Company Inc.",
+        "Seattle",
+        "Worker",
+        "Jan. 2010",
+        "Current",
+        [
+            "Worked hard",
+            "Helped customers",
+            ],
+        [
+            "General",
+            "Customer Service",
+        ],
+    )
+
+    add_professional_development(
+        db_path,
+        1,
+        "Working",
+        "Company Inc.",
+        "Jan. 2010",
+        "Certified",
+        "General",
+        ["Working Hard"]
     )
 
     add_certification(db_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys")
