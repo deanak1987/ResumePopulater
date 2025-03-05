@@ -83,7 +83,7 @@ def db_builder(db_path):
         person_id INTEGER,
         certification_name TEXT,
         issuing_organization TEXT,
-        date_obtained INTEGER,
+        date_obtained TEXT,
         expiration_date TEXT,
         field TEXT
     );
@@ -97,6 +97,23 @@ def db_builder(db_path):
         venue TEXT,
         edition TEXT,
         pages TEXT
+    );
+    
+    CREATE TABLE IF NOT EXISTS ProfessionalDevelopment (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        person_id INTEGER,
+        certification_name TEXT,
+        issuing_organization TEXT,
+        date_completed INTEGER,
+        context TEXT,
+        field TEXT
+    );
+    
+    CREATE TABLE IF NOT EXISTS PDCovered (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            prof_dev_id INTEGER,
+            covered TEXT,
+            FOREIGN KEY (prof_dev_id) REFERENCES ProfessionalDevelopment(id) ON DELETE CASCADE
     );
     
     CREATE TABLE IF NOT EXISTS Custom_Resume_Criteria (

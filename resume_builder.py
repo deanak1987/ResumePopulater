@@ -1,16 +1,17 @@
-import sqlite3
 from docx import Document
 from db_manager import get_employment, get_publications, get_education, get_person_info
+from docx.shared import Pt
+
 
 def fetch_resume_data(db_path, person_id):
     """Fetches all resume-related data from the database."""
 
-    person = get_person_info(db_path, person_id)# cursor.fetchone()
-    print(person)
-    (full_name, email, linkedin, github) = person
-    education = get_education(db_path, person_id)# cursor.fetchall()
-    publications = get_publications(db_path, person_id)#cursor.fetchall()
-    employment = get_employment(db_path, person_id)#cursor.fetchall()
+    (full_name, email, linkedin, github) = get_person_info(
+        db_path, person_id
+    )  # cursor.fetchone()
+    education = get_education(db_path, person_id)
+    publications = get_publications(db_path, person_id)
+    employment = get_employment(db_path, person_id)
 
     return {
         "full_name": full_name,
@@ -73,6 +74,36 @@ def replace_text_while_keeping_formatting(paragraph, key, value):
                     new_run.font.color.rgb = run_format["color"]
 
 
+def replace_text_with_tabs(paragraph, replacements):
+    """Replace tab-separated placeholders while preserving formatting."""
+    parts = paragraph.text.split("\t")  # Split by tab
+
+    # Replace placeholders
+    new_parts = [replacements.get(part, part) for part in parts]
+
+    # Clear existing runs
+    for run in paragraph.runs:
+        run.text = ""
+
+    # Rebuild the paragraph with replacements and tab separators
+    for i, new_text in enumerate(new_parts):
+        if i > 0:
+            paragraph.add_run("\t")  # Add tab back
+        new_run = paragraph.add_run(new_text)
+
+        # Apply formatting from the original part (if available)
+        if i < len(paragraph.runs):
+            original_run = paragraph.runs[i]
+            new_run.bold = original_run.bold
+            new_run.italic = original_run.italic
+            new_run.underline = original_run.underline
+            new_run.font.name = original_run.font.name
+            if original_run.font.size:
+                new_run.font.size = original_run.font.size
+            if original_run.font.color:
+                new_run.font.color.rgb = original_run.font.color.rgb
+
+
 def populate_resume(
     person_id, db_path, template_path="template.docx", output_file="Resume.docx"
 ):
@@ -83,12 +114,7 @@ def populate_resume(
     doc = Document(template_path)
     data = fetch_resume_data(db_path, person_id)
 
-    # Replace single-value placeholders while maintaining formatting
-    for para in doc.paragraphs:
-        replace_text_while_keeping_formatting(para, "{full_name}", data["full_name"])
-        replace_text_while_keeping_formatting(para, "{email}", data["email"])
-        replace_text_while_keeping_formatting(para, "{linkedin}", data["linkedin"])
-        replace_text_while_keeping_formatting(para, "{github}", data["github"])
+    # Replace placeholders while keeping formatting
 
     # Handle education, publications and employment sections
     for para in doc.paragraphs:
@@ -97,6 +123,18 @@ def populate_resume(
 
         # original_style = para.style
         original_font = para.runs[0].font if para.runs else None
+        if "{personal_info}" in para.text:
+            para.clear()
+            run = para.add_run(f"{data['full_name']}\n")
+            run.bold = True
+            contact = para.add_run(
+                f"{data['email']}\t{data['linkedin']}\t{data['github']}\t"
+            )
+            if original_font:
+                run.font.name = original_font.name
+                run.font.size = original_font.size
+                contact.font.name = original_font.name
+                contact.font.size = Pt(original_font.size.pt - 4)
 
         if "{education}" in para.text:
             # Clear the paragraph while keeping its style
@@ -138,8 +176,17 @@ def populate_resume(
             original_indent = para.paragraph_format.left_indent
 
             for position in data["employment"]:
-                company, location, title, start_date, end_date, responsibilities, fields = position
-                print(position)
+                (
+                    company,
+                    location,
+                    title,
+                    start_date,
+                    end_date,
+                    responsibilities,
+                    fields,
+                ) = position
+                if not fields:
+                    print("No fields.")
                 # Reset paragraph indentation for each new company
                 if prev_company != company:
                     # Reset to original indent (usually 0 for left margin)
@@ -166,7 +213,7 @@ def populate_resume(
                     if end_date
                     else f"{start_date} - Present"
                 )
-                title_run = current_para.add_run(f"\t{title}  {date_range}\n")
+                title_run = current_para.add_run(f"{title}  {date_range}\n")
 
                 if original_font:
                     title_run.font.name = original_font.name
@@ -200,4 +247,4 @@ def populate_resume(
     print(f"Resume saved successfully as {output_file}")
 
 
-populate_resume(1, db_path = "resume.db")
+populate_resume(1, db_path="resume.db")

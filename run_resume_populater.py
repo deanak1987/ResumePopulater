@@ -1,23 +1,33 @@
 # from job_posting_scraper import scrape_job
 import setup_db
 from db_loader import load_info
-from db_manager import get_person_info, get_education, get_employment
+from db_manager import (
+    get_person_info,
+    get_education,
+    get_employment,
+    get_professional_development,
+)
 
 db_path = r"resume.db"
 setup_db.db_builder(db_path)
 load_info(db_path)
 full_name, email, linkedin, github = get_person_info(db_path, 1)
-print(f"{full_name}, {email}, {linkedin}, {github}")
+print(f"\n{full_name}, {email}, {linkedin}, {github}\n")
 
+print("Education")
 eds = get_education(db_path, 1)
 for ed in eds:
     print(ed)
 
+print("\nEmployment")
 emps = get_employment(db_path, 1)
 for emp in emps:
     print(emp)
 
-
+print("\nProfessional Development")
+pds = get_professional_development(db_path, 1)
+for pd in pds:
+    print(pd)
 # job_url = "https://www.governmentjobs.com/careers/tacoma/jobs/4779178/customer-service-representative"  # Replace with actual job URL
 # job_info = scrape_job(job_url)
 #

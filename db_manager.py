@@ -19,6 +19,7 @@ def fetch_data(path, query, params=()):
     conn.close()
     return results
 
+
 def fetch_one_data(path, query, params=()):
     """Fetches data based on a given SQL query."""
     conn = sqlite3.connect(path)
@@ -46,6 +47,7 @@ def get_personal_info(path):
         output += f"{row}\n"
     return output
 
+
 def get_person_info(path, person_id):
     query = """
     SELECT full_name, email, linkedin, github 
@@ -53,6 +55,7 @@ def get_person_info(path, person_id):
     """
     result = fetch_one_data(path, query, (person_id,))
     return result
+
 
 def delete_and_reset_ids(path, table, row_id):
     """Deletes a row and resets ID values to maintain sequential order."""
@@ -129,6 +132,7 @@ def add_coursework(
 #         output += f"No education records found for Person ID {person_id}."
 #     return output
 
+
 def get_education(path, person_id):
     """Fetches education records for a person."""
     query = """
@@ -138,7 +142,6 @@ def get_education(path, person_id):
         ORDER BY Education.graduation_year DESC
     """
     return fetch_data(path, query, (person_id,))
-
 
 
 def get_education_with_coursework(path, person_id):
@@ -191,7 +194,6 @@ def get_publications(path, person_id):
     return fetch_data(path, query, (person_id,))
 
 
-
 def add_certification(
     path,
     person_id,
@@ -232,7 +234,6 @@ def get_certifications(path, person_id):
         ORDER BY Certifications.date_obtained DESC
     """
     return fetch_data(path, query, (person_id,))
-
 
 
 def add_employment(
@@ -284,39 +285,7 @@ def add_employment(
 
     finally:
         conn.close()  # Ensure the connection is closed
-#
-#
-# def get_employment(path, person_id):
-#     """Fetches employment history along with responsibilities."""
-#     query = """
-#         SELECT e.id, e.company, e.location, e.job_title, e.start_date, e.end_date
-#         FROM Employment e
-#         WHERE e.person_id = ?
-#         ORDER BY e.start_date DESC
-#     """
-#
-#     results = fetch_data(path, query, (person_id,))
-#     output = f"Employment history for Person ID {person_id}:\n"
-#     if results:
-#         for job in results:
-#             job_id, company, location, job_title, start_date, end_date = job
-#
-#             # Fetch responsibilities correctly using job_id
-#             responsibilities_query = "SELECT description, field FROM Responsibilities WHERE employment_id = ?"
-#             responsibilities_results = fetch_data(
-#                 path, responsibilities_query, (job_id,)
-#             )
-#
-#             output += f"Worked for {company} as {job_title} at {location} from {start_date} - {end_date} with the following responsibilities:\n"
-#             output += "".join(
-#                 f"\t• {resp[0]}\n" for resp in responsibilities_results
-#             )  # Unpack tuple correctly
-#             output += "\n"  # Extra line break between jobs
-#
-#     else:
-#         output += "No work history."
-#
-#     return output.strip()
+
 
 def get_employment(path, person_id):
     """Fetches employment history along with responsibilities."""
@@ -326,45 +295,112 @@ def get_employment(path, person_id):
         LEFT JOIN Responsibilities AS R ON R.employment_id = E.id
         WHERE E.person_id = ?
         GROUP BY E.company, E.location, E.job_title, E.start_date, E.end_date
-        ORDER BY E.start_date DESC
+        ORDER BY 
+    SUBSTR(E.end_date, -4) || 
+    CASE 
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Jan' THEN '-01'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Feb' THEN '-02'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Mar' THEN '-03'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Apr' THEN '-04'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'May' THEN '-05'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Jun' THEN '-06'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Jul' THEN '-07'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Aug' THEN '-08'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Sep' THEN '-09'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Oct' THEN '-10'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Nov' THEN '-11'
+        WHEN SUBSTR(E.end_date, 1, 3) = 'Dec' THEN '-12'
+    END DESC;
     """
+    # ORDER BY E.start_date DESC
 
     return fetch_data(path, query, (person_id,))
 
-#
-# def get_employment_resume(path, person_id):
-#     """Fetches employment history along with responsibilities."""
-#     query = """
-#         SELECT e.id, e.company, e.location, e.job_title, e.start_date, e.end_date
-#         FROM Employment e
-#         WHERE e.person_id = ?
-#         ORDER BY e.start_date DESC
-#     """
-#
-#     results = fetch_data(path, query, (person_id,))
-#     output = ""
-#     if results:
-#         for job in results:
-#             job_id, company, location, job_title, start_date, end_date = job
-#
-#             # Fetch responsibilities correctly using job_id
-#             responsibilities_query = (
-#                 "SELECT description FROM Responsibilities WHERE employment_id = ?"
-#             )
-#             responsibilities_results = fetch_data(
-#                 path, responsibilities_query, (job_id,)
-#             )
-#
-#             output += (
-#                 f"{company}\n\t{job_title}, {location}\t{start_date} - {end_date}\n"
-#             )
-#             output += "".join(
-#                 f"\t• {resp[0]}\n" for resp in responsibilities_results
-#             )  # Unpack tuple correctly
-#             output += "\n"  # Extra line break between jobs
-#     else:
-#         output += "No work history."
-#     return output.strip()
+
+def add_professional_development(
+    path,
+    person_id,
+    certification_name,
+    issuing_organization,
+    date_completed,
+    context,
+    field,
+    covered,
+):
+    """Adds a professional development entry to the database."""
+    try:
+        with sqlite3.connect(path) as conn:
+            cursor = conn.cursor()
+
+            # Insert professional development entry
+            cursor.execute(
+                """
+                INSERT INTO ProfessionalDevelopment (person_id, certification_name, issuing_organization, date_completed, context, field)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    person_id,
+                    certification_name,
+                    issuing_organization,
+                    date_completed,
+                    context,
+                    field,
+                ),
+            )
+            prof_dev_id = cursor.lastrowid  # Get the last inserted ID
+
+            # Insert covered topics only if 'covered' is a non-empty list
+            if covered and isinstance(covered, list):
+                data = [(prof_dev_id, item) for item in covered]
+                cursor.executemany(
+                    "INSERT INTO PDCovered (prof_dev_id, covered) VALUES (?, ?)", data
+                )
+
+            conn.commit()
+            print(
+                f"✅ Added certification: {context} '{certification_name}' from {issuing_organization} "
+                f"completed in {date_completed} for person_id: {person_id}, field: {field}"
+            )
+
+    except sqlite3.Error as e:
+        print(f"❌ Database error: {e}")
+
+
+def get_professional_development(path, person_id):
+    """Fetches professional development records for a person."""
+    query = """
+        SELECT PD.certification_name, PD.issuing_organization, PD.date_completed, PD.context, PD.field, 
+               GROUP_CONCAT(C.covered, ';') AS covered 
+        FROM ProfessionalDevelopment AS PD
+        LEFT JOIN PDCovered AS C ON C.prof_dev_id = PD.id
+        WHERE PD.person_id = ?
+        GROUP BY PD.id
+        ORDER BY 
+        SUBSTR(PD.date_completed, -4) || 
+        CASE 
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Jan' THEN '-01'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Feb' THEN '-02'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Mar' THEN '-03'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Apr' THEN '-04'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'May' THEN '-05'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Jun' THEN '-06'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Jul' THEN '-07'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Aug' THEN '-08'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Sep' THEN '-09'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Oct' THEN '-10'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Nov' THEN '-11'
+            WHEN SUBSTR(PD.date_completed, 1, 3) = 'Dec' THEN '-12'
+        END DESC;
+    """
+    try:
+        with sqlite3.connect(path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, (person_id,))
+            return cursor.fetchall()
+
+    except sqlite3.Error as e:
+        print(f"❌ Database error: {e}")
+        return []
 
 
 def get_schema(path):
