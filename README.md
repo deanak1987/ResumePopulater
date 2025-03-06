@@ -142,7 +142,8 @@ The job_posting_scraper.py file loads a URL for a job posting and scrapes all th
 
 ## Resume Populater
 The resume_builder.py file takes the information from the database and utilizes a template.docx file to automatically populate a resume.
- * Currently, performs basic population of education and publication sections
+ * Currently, performs basic population of education, employment, projects, and publication sections
+ * Curruntly working to implement selective inputs to include/exclude specific items depending on requirements
  * NTA functionality to populate the other fields
  * NTA functionality to determine the best info based on job posting information
  * WTA AI functionality to automatically populate personal statement utilizing matches between job description and experience data
