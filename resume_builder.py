@@ -1,5 +1,14 @@
 from docx import Document
-from db_manager import get_employment, get_publications, get_education, get_person_info
+from db_manager import (
+    get_employment,
+    get_publications,
+    get_education,
+    get_person_info,
+    # get_skills,
+    # get_professional_development,
+    # get_certifications,
+    get_projects,
+)
 from docx.shared import Pt
 
 
@@ -8,19 +17,18 @@ def fetch_resume_data(db_path, person_id):
 
     (full_name, email, linkedin, github) = get_person_info(
         db_path, person_id
-    )  # cursor.fetchone()
-    education = get_education(db_path, person_id)
-    publications = get_publications(db_path, person_id)
-    employment = get_employment(db_path, person_id)
+    )
 
     return {
         "full_name": full_name,
         "email": email,
         "linkedin": linkedin,
         "github": github,
-        "education": education,
-        "employment": employment,
-        "publications": publications,
+        "education": get_education(db_path, person_id),
+        "employment": get_employment(db_path, person_id, fields=["Engineering"]),
+        "publications": get_publications(db_path, person_id),
+        "projects": get_projects(db_path, person_id, fields=["Data Science"], exclude_types=["Personal"]),
+        "personal_projects": get_projects(db_path, person_id, types=["Personal"]),
     }
 
 
@@ -167,6 +175,7 @@ def populate_resume(
                     run.font.size = original_font.size
 
         elif "{employment}" in para.text:
+            print(data["employment"])
             # Clear the paragraph
             current_para = para
             current_para.clear()
@@ -174,7 +183,6 @@ def populate_resume(
 
             # Store the original paragraph format for resetting
             original_indent = para.paragraph_format.left_indent
-
             for position in data["employment"]:
                 (
                     company,
@@ -182,11 +190,14 @@ def populate_resume(
                     title,
                     start_date,
                     end_date,
+                    field,
                     responsibilities,
                     fields,
                 ) = position
+
                 if not fields:
                     print("No fields.")
+
                 # Reset paragraph indentation for each new company
                 if prev_company != company:
                     # Reset to original indent (usually 0 for left margin)
@@ -197,36 +208,110 @@ def populate_resume(
                     company_run.bold = True
 
                     # Add location if available
-                    if location:
-                        current_para.add_run(f", {location}")
+                    location_run = current_para.add_run(f", {location}\n")
 
-                    current_para.add_run("\n")
-
-                    # Apply font formatting to company name
+                    # Apply font formatting
                     if original_font:
                         company_run.font.name = original_font.name
+                        location_run.font.name = original_font.name
                         company_run.font.size = original_font.size
+                        location_run.font.size  = original_font.size
 
                 # Add job title and dates with tab spacing
                 date_range = (
-                    f"\t{start_date} - {end_date}"
-                    if end_date
+                    f"{start_date} - {end_date}" if end_date
                     else f"{start_date} - Present"
                 )
-                title_run = current_para.add_run(f"{title}  {date_range}\n")
+
+                title_run = current_para.add_run(f"{title}\t{date_range}\n")
 
                 if original_font:
                     title_run.font.name = original_font.name
+
                     title_run.font.size = original_font.size
 
                 # Process responsibilities as bullet points
+
                 if responsibilities:
+
                     for responsibility in responsibilities.split(";"):
+
+                        if responsibility.strip():
+
+                            # Create a properly formatted bullet point with the dash and spaces
+
+                            bullet_run = current_para.add_run("•\t")
+
+                            resp_run = current_para.add_run(
+
+                                f"{responsibility.strip()}\n"
+
+                            )
+
+                            # Preserve font formatting
+
+                            if original_font:
+                                bullet_run.font.name = original_font.name
+
+                                bullet_run.font.size = original_font.size
+
+                                resp_run.font.name = original_font.name
+
+                                resp_run.font.size = original_font.size
+
+
+                # Update previous company
+
+                prev_company = company
+
+        elif "{projects}" in para.text:
+            # Clear the paragraph
+            current_para = para
+            current_para.clear()
+
+            # Store the original paragraph format for resetting
+            original_indent = para.paragraph_format.left_indent
+
+            for project in data["projects"]:
+                (
+                    project_name, year, technologies, project_link, field, project_type, details
+                ) = project
+                print(field)
+                print(project_link)
+                print(project_type)
+
+                # Reset paragraph indentation for each new company
+
+                current_para.paragraph_format.left_indent = original_indent
+
+                # Add company with bold formatting
+                project_run = current_para.add_run(f"{project_name}")
+                project_run.bold = True
+
+                # Add location if available
+                if field:
+                    current_para.add_run(f", {field}, {year}\n")
+
+                # Apply font formatting to company name
+                if original_font:
+                    project_run.font.name = original_font.name
+                    project_run.font.size = original_font.size
+
+
+                tools_run = current_para.add_run(f"Tools & Technologies: {technologies}\n")
+
+                if original_font:
+                    tools_run.font.name = original_font.name
+                    tools_run.font.size = original_font.size
+
+                # Process details as bullet points
+                if details:
+                    for responsibility in details.split(";"):
                         if responsibility.strip():
                             # Create a properly formatted bullet point with the dash and spaces
                             bullet_run = current_para.add_run("•\t")
 
-                            resp_run = current_para.add_run(
+                            detail_run = current_para.add_run(
                                 f"{responsibility.strip()}\n"
                             )
 
@@ -234,14 +319,12 @@ def populate_resume(
                             if original_font:
                                 bullet_run.font.name = original_font.name
                                 bullet_run.font.size = original_font.size
-                                resp_run.font.name = original_font.name
-                                resp_run.font.size = original_font.size
+                                detail_run.font.name = original_font.name
+                                detail_run.font.size = original_font.size
 
                 # Add space between job entries
                 current_para.add_run("\n")
 
-                # Update previous company
-                prev_company = company
 
     doc.save(output_file)
     print(f"Resume saved successfully as {output_file}")

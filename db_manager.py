@@ -244,6 +244,7 @@ def add_employment(
     job_title,
     start_date,
     end_date,
+    field,
     responsibilities,
     fields,
 ):
@@ -255,10 +256,10 @@ def add_employment(
         # Insert job details
         cursor.execute(
             """
-            INSERT INTO Employment (person_id, company, location, job_title, start_date, end_date)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO Employment (person_id, company, location, job_title, start_date, end_date, field)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (person_id, company, location, job_title, start_date, end_date),
+            (person_id, company, location, job_title, start_date, end_date, field),
         )
 
         employment_id = cursor.lastrowid  # Get the last inserted job ID
@@ -287,34 +288,54 @@ def add_employment(
         conn.close()  # Ensure the connection is closed
 
 
-def get_employment(path, person_id):
+def get_employment(path, person_id, fields=None, exclude_fields=None):
     """Fetches employment history along with responsibilities."""
     query = """
-        SELECT E.company, E.location, E.job_title, E.start_date, E.end_date, GROUP_CONCAT(R.description, ';') AS responsibilities, GROUP_CONCAT(R.field, ';') AS field 
+        SELECT E.company, E.location, E.job_title, E.start_date, E.end_date, E.field, 
+               GROUP_CONCAT(R.description, ';') AS responsibilities, 
+               GROUP_CONCAT(R.field, ';') AS fields
         FROM Employment AS E 
         LEFT JOIN Responsibilities AS R ON R.employment_id = E.id
         WHERE E.person_id = ?
-        GROUP BY E.company, E.location, E.job_title, E.start_date, E.end_date
-        ORDER BY 
-    SUBSTR(E.end_date, -4) || 
-    CASE 
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Jan' THEN '-01'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Feb' THEN '-02'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Mar' THEN '-03'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Apr' THEN '-04'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'May' THEN '-05'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Jun' THEN '-06'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Jul' THEN '-07'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Aug' THEN '-08'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Sep' THEN '-09'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Oct' THEN '-10'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Nov' THEN '-11'
-        WHEN SUBSTR(E.end_date, 1, 3) = 'Dec' THEN '-12'
-    END DESC;
     """
-    # ORDER BY E.start_date DESC
 
-    return fetch_data(path, query, (person_id,))
+    params = [person_id]
+
+    if fields:
+        placeholders = ",".join("?" * len(fields))  # Create placeholders (?, ?, ?)
+        query += f" AND E.field IN ({placeholders})"
+        params.extend(fields)
+
+    if exclude_fields:
+        query += f" AND P.field NOT IN ({','.join('?' * len(exclude_fields))})"
+        params.extend(exclude_fields)
+
+
+    query += """
+        GROUP BY E.company, E.location, E.job_title, E.start_date, E.end_date, E.field
+        ORDER BY 
+            SUBSTR(E.end_date, -4) || 
+            CASE 
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Jan' THEN '-01'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Feb' THEN '-02'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Mar' THEN '-03'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Apr' THEN '-04'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'May' THEN '-05'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Jun' THEN '-06'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Jul' THEN '-07'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Aug' THEN '-08'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Sep' THEN '-09'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Oct' THEN '-10'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Nov' THEN '-11'
+                WHEN SUBSTR(E.end_date, 1, 3) = 'Dec' THEN '-12'
+            END DESC;
+    """
+
+    # print("Executing SQL query:")
+    # print(query)
+    # print("With parameters:", params)  # Debugging
+
+    return fetch_data(path, query, params)
 
 
 def add_professional_development(
@@ -435,7 +456,7 @@ def add_skills(
 
             conn.commit()
             print(
-                f"✅ Added skill: {skill}SkillDetails for person_id: {person_id}"
+                f"✅ Added skill: {skill} for person_id: {person_id}"
             )
 
     except sqlite3.Error as e:
@@ -460,6 +481,87 @@ def get_skills(path, person_id):
     except sqlite3.Error as e:
         print(f"❌ Database error: {e}")
         return []
+
+def add_project(
+    path,
+    person_id,
+    project_name, year, technologies, project_link, field, project_type,
+    details
+):
+    """Adds a professional development entry to the database."""
+    try:
+        with sqlite3.connect(path) as conn:
+            cursor = conn.cursor()
+
+            # Insert professional development entry
+            cursor.execute(
+                """
+                INSERT INTO Projects (person_id, project_name, year, technologies, project_link, field, project_type)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    person_id,
+                    project_name, year, technologies, project_link, field, project_type,
+                ),
+            )
+            project_id = cursor.lastrowid  # Get the last inserted ID
+
+            # Insert covered topics only if 'covered' is a non-empty list
+            if details and isinstance(details, list):
+                data = [(project_id, item) for item in details]
+                cursor.executemany(
+                    "INSERT INTO ProjectDetails (project_id, detail) VALUES (?, ?)", data
+                )
+
+            conn.commit()
+            print(
+                f"✅ Added project: {project_name} for person_id: {person_id}"
+            )
+
+    except sqlite3.Error as e:
+        print(f"❌ Database error: {e}")
+
+
+def get_projects(path, person_id, fields=None, types=None, exclude_fields=None, exclude_types=None):
+    """Fetches professional development records for a person, filtered by field and type."""
+    query = """
+        SELECT P.project_name, P.year, P.technologies, P.project_link, P.field, P.type, 
+               GROUP_CONCAT(D.detail, ';') AS details 
+        FROM Projects AS P
+        LEFT JOIN ProjectDetails AS D ON D.project_id = P.id
+        WHERE P.person_id = ?
+    """
+
+    params = [person_id]
+
+    if fields:
+        query += f" AND P.field IN ({','.join('?' * len(fields))})"
+        params.extend(fields)
+
+    if types:
+        query += f" AND P.type IN ({','.join('?' * len(types))})"
+        params.extend(types)
+
+    if exclude_fields:
+        query += f" AND P.field NOT IN ({','.join('?' * len(exclude_fields))})"
+        params.extend(exclude_fields)
+
+    if exclude_types:
+        query += f" AND P.type NOT IN ({','.join('?' * len(exclude_types))})"
+        params.extend(exclude_types)
+
+    query += " GROUP BY P.id"
+
+    try:
+        with sqlite3.connect(path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            return cursor.fetchall()
+
+    except sqlite3.Error as e:
+        print(f"❌ Database error: {e}")
+        return []
+
 
 
 def get_schema(path):

@@ -65,11 +65,19 @@ def db_builder(db_path):
     
     CREATE TABLE IF NOT EXISTS Projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        person_id INTEGER,
         project_name TEXT,
+        year INTEGER,
         technologies TEXT,
-        description TEXT,
         project_link TEXT,
-        field, TEXT
+        field TEXT,
+        project_type TEXT
+    );
+    
+    CREATE TABLE IF NOT EXISTS ProjectDetails (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER,
+        detail TEXT
     );
     
     CREATE TABLE IF NOT EXISTS Skills (

@@ -127,6 +127,7 @@ def test_add_employment():
         "Worker",
         "June 2020",
         "Current",
+        "General",
         ["Did work", "Spoke to clients"],
         ["General", "General"],
     )
@@ -148,6 +149,7 @@ def test_add_employment():
     assert results[0][4] == "Worker"
     assert results[0][5] == "June 2020"
     assert results[0][6] == "Current"
+    assert results[0][7] == "General"
     assert results[0][8] == "Did work, Spoke to clients"
     assert results[0][9] == "General, General"
 
@@ -277,6 +279,7 @@ def test_get_employment():
         "Worker",
         "June 2020",
         "Current",
+        "General",
         ["Did work", "Spoke to clients"],
         ["General", "General"],
     )
@@ -286,6 +289,7 @@ def test_get_employment():
         "Worker",
         "June 2020",
         "Current",
+        "General",
         "Did work;Spoke to clients",
         "General;General",
     )

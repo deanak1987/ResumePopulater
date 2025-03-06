@@ -86,6 +86,7 @@ def load_generic(db_path):
         "Worker",
         "Jan. 2010",
         "Current",
+        "General",
         [
             "Worked hard",
             "Helped customers",

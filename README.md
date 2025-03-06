@@ -64,16 +64,28 @@ CREATE TABLE Responsibilities (
     )
 CREATE TABLE Projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        person_id INTEGER,
         project_name TEXT,
+        year INTEGER,
         technologies TEXT,
-        description TEXT,
         project_link TEXT,
-        field, TEXT
+        field TEXT,
+        type TEXT
+    )
+CREATE TABLE ProjectDetails (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER,
+        detail TEXT
     )
 CREATE TABLE Skills (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        skill_name TEXT,
-        proficiency_level TEXT
+        person_id INTEGER,
+        skill TEXT
+    )
+CREATE TABLE SkillDetails (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        skill_id INTEGER,
+        detail TEXT
     )
 CREATE TABLE Certifications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
