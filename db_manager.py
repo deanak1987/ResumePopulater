@@ -288,12 +288,18 @@ def add_employment(
         conn.close()  # Ensure the connection is closed
 
 
-def get_employment(path, person_id, fields=None, exclude_fields=None):
-    """Fetches employment history along with responsibilities."""
+def get_employment(path, person_id, filters=None):
+    """Fetches employment history along with filtered responsibilities."""
+    if filters is None:
+        filters = {}
+    fields = filters["filters"] if "field" in filters else None
+    exclude_fields = filters["exclude_fields"] if "exclude_fields" in filters else None
+    resp_fields = filters["resp_fields"] if "resp_fields" in filters else None
+    # Base query
     query = """
-        SELECT E.company, E.location, E.job_title, E.start_date, E.end_date, E.field, 
-               GROUP_CONCAT(R.description, ';') AS responsibilities, 
-               GROUP_CONCAT(R.field, ';') AS fields
+        SELECT 
+            E.company, E.location, E.job_title, E.start_date, E.end_date, E.field, 
+            COALESCE(GROUP_CONCAT(R.description, ';'), '') AS responsibilities
         FROM Employment AS E 
         LEFT JOIN Responsibilities AS R ON R.employment_id = E.id
         WHERE E.person_id = ?
@@ -301,18 +307,26 @@ def get_employment(path, person_id, fields=None, exclude_fields=None):
 
     params = [person_id]
 
+    # Filter employment fields
     if fields:
-        placeholders = ",".join("?" * len(fields))  # Create placeholders (?, ?, ?)
+        placeholders = ",".join("?" * len(fields))
         query += f" AND E.field IN ({placeholders})"
         params.extend(fields)
 
     if exclude_fields:
-        query += f" AND P.field NOT IN ({','.join('?' * len(exclude_fields))})"
+        placeholders = ",".join("?" * len(exclude_fields))
+        query += f" AND E.field NOT IN ({placeholders})"
         params.extend(exclude_fields)
 
+    # Filter responsibilities field
+    if resp_fields:
+        placeholders = ",".join("?" * len(resp_fields))
+        query += f" AND R.field IN ({placeholders})"
+        params.extend(resp_fields)
 
+    # Grouping & Ordering
     query += """
-        GROUP BY E.company, E.location, E.job_title, E.start_date, E.end_date, E.field
+        GROUP BY E.id, E.company, E.location, E.job_title, E.start_date, E.end_date, E.field
         ORDER BY 
             SUBSTR(E.end_date, -4) || 
             CASE 
@@ -331,12 +345,20 @@ def get_employment(path, person_id, fields=None, exclude_fields=None):
             END DESC;
     """
 
-    # print("Executing SQL query:")
-    # print(query)
-    # print("With parameters:", params)  # Debugging
+    try:
+        with sqlite3.connect(path) as conn:
+            cursor = conn.cursor()
 
-    return fetch_data(path, query, params)
+            # # Debugging output
+            # print("Executing SQL query:\n", query)
+            # print("With parameters:", params)
 
+            cursor.execute(query, params)
+            return cursor.fetchall()
+
+    except sqlite3.Error as e:
+        print(f"❌ Database error: {e}")
+        return []
 
 def add_professional_development(
     path,
@@ -525,7 +547,7 @@ def add_project(
 def get_projects(path, person_id, fields=None, types=None, exclude_fields=None, exclude_types=None):
     """Fetches professional development records for a person, filtered by field and type."""
     query = """
-        SELECT P.project_name, P.year, P.technologies, P.project_link, P.field, P.type, 
+        SELECT P.project_name, P.year, P.technologies, P.project_link, P.field, P.project_type, 
                GROUP_CONCAT(D.detail, ';') AS details 
         FROM Projects AS P
         LEFT JOIN ProjectDetails AS D ON D.project_id = P.id
@@ -539,7 +561,7 @@ def get_projects(path, person_id, fields=None, types=None, exclude_fields=None, 
         params.extend(fields)
 
     if types:
-        query += f" AND P.type IN ({','.join('?' * len(types))})"
+        query += f" AND P.project_type IN ({','.join('?' * len(types))})"
         params.extend(types)
 
     if exclude_fields:
@@ -547,7 +569,7 @@ def get_projects(path, person_id, fields=None, types=None, exclude_fields=None, 
         params.extend(exclude_fields)
 
     if exclude_types:
-        query += f" AND P.type NOT IN ({','.join('?' * len(exclude_types))})"
+        query += f" AND P.project_type NOT IN ({','.join('?' * len(exclude_types))})"
         params.extend(exclude_types)
 
     query += " GROUP BY P.id"
@@ -563,6 +585,67 @@ def get_projects(path, person_id, fields=None, types=None, exclude_fields=None, 
         return []
 
 
+def add_job_posting(db_path, job_data):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO Job_Postings (
+            job_title, company_name, location, job_type, job_description,
+            responsibilities, requirements, preferred_qualifications, technologies,
+            soft_skills, salary_range, application_deadline, application_url,
+            posting_date, job_id, hiring_manager, hiring_address
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
+    """, (
+        job_data["job_title"], job_data["company_name"], job_data["location"],
+        job_data["job_type"], job_data["job_description"], job_data["responsibilities"],
+        job_data["requirements"], job_data["preferred_qualifications"], job_data["technologies"],
+        job_data["soft_skills"], job_data["salary_range"], job_data["application_deadline"],
+        job_data["application_url"], job_data["posting_date"], job_data["job_id"],
+        job_data["hiring_manager"], job_data["hiring_address"]
+    ))
+
+    conn.commit()
+    conn.close()
+
+
+def get_job_postings(db_path, job_url=None, job_title=None): #-> List:
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # SQL query to fetch job posting(s)
+    query = """
+        SELECT 
+            id, job_title, company_name, location, job_type, 
+            job_description, responsibilities, requirements, 
+            preferred_qualifications, technologies, soft_skills, 
+            salary_range, application_deadline, application_url, 
+            posting_date, job_id, hiring_manager, hiring_address 
+        FROM Job_Postings
+    """
+
+    conditions = []
+    params = []
+
+    if job_url:
+        conditions.append("application_url = ?")
+        params.append(job_url)
+
+    if job_title:
+        conditions.append("job_title = ?")
+        params.append(job_title)
+
+    # Append conditions if any, otherwise fetch all
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    cursor.execute(query, params)
+    rows = cursor.fetchall()
+
+    conn.close()
+    return rows
 
 def get_schema(path):
     """Fetches SQL DB schema"""

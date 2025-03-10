@@ -11,3 +11,7 @@ bs4
 pytest
 black
 pylint
+sentence_transformers
+torch
+requests
+openai

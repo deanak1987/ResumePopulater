@@ -137,15 +137,15 @@ The transcript_parser.py file reads in a transcript PDF and loads the educationa
 
 ## Job Posting Scraper
 The job_posting_scraper.py file loads a URL for a job posting and scrapes all the pertinent information.
- * Currently only configured and tested for the jobs website Government Jobs
- * Need to add functionality to search other sites
+ * Utilizes Zyte and OpenAI GPT APIS to scrape job info from job posting URLs
+ * Parses info and loads relevant info into database to ensure that data is saved and APIs don't need to be called again and incur charges
 
 ## Resume Populater
 The resume_builder.py file takes the information from the database and utilizes a template.docx file to automatically populate a resume.
  * Currently, performs basic population of education and publication sections
+ * Utilizes LLM to score and rank job responsibilities to job description info (in progress) 
  * NTA functionality to populate the other fields
  * NTA functionality to determine the best info based on job posting information
- * WTA AI functionality to automatically populate personal statement utilizing matches between job description and experience data
 
 
 [![Python application test with Github Actions](https://github.com/deanak1987/ResumePopulator/actions/workflows/makefile.yml/badge.svg)](https://github.com/deanak1987/ResumePopulator/actions/workflows/makefile.yml)

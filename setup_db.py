@@ -130,13 +130,27 @@ def db_builder(db_path):
             FOREIGN KEY (prof_dev_id) REFERENCES ProfessionalDevelopment(id) ON DELETE CASCADE
     );
     
-    CREATE TABLE IF NOT EXISTS Custom_Resume_Criteria (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        target_job_title TEXT,
-        required_skills TEXT,
-        preferred_experience TEXT,
-        keywords TEXT
+    CREATE TABLE IF NOT EXISTS Job_Postings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_title TEXT,
+            company_name TEXT,
+            location TEXT,
+            job_type TEXT,
+            job_description TEXT,
+            responsibilities TEXT,
+            requirements TEXT,
+            preferred_qualifications TEXT,
+            technologies TEXT,
+            soft_skills TEXT,
+            salary_range TEXT,
+            application_deadline TEXT,
+            application_url TEXT,
+            posting_date TEXT,
+            job_id TEXT,
+            hiring_manager TEXT,
+            hiring_address TEXT
     );
+
     """
     )
 
