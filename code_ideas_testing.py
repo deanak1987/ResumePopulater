@@ -1,5 +1,5 @@
 from sentence_transformers import SentenceTransformer, util
-from Job_posting_scraper_ai import get_scraped_job_data
+from job_posting_scraper_ai import get_scraped_job_data
 from db_manager import get_employment, get_job_postings
 import torch
 

@@ -10,6 +10,8 @@ from db_manager import (
     get_projects,
 )
 from docx.shared import Pt
+from job_relavancy_scorer import score_and_rank_relevance
+from job_posting_scraper_ai import get_scraped_job_data
 
 
 def fetch_resume_data(db_path, person_id, search_filters=None):
@@ -26,7 +28,7 @@ def fetch_resume_data(db_path, person_id, search_filters=None):
         "linkedin": linkedin,
         "github": github,
         "education": get_education(db_path, person_id),
-        "employment": get_employment(db_path, person_id, search_filters["employment_filters"]),
+        "employment": get_employment(db_path, person_id),#, search_filters["employment_filters"]),
         "publications": get_publications(db_path, person_id),
         "projects": get_projects(db_path, person_id, fields=["Data Science"], exclude_fields=["Personal"]),
         "personal_projects": get_projects(db_path, person_id, types=["Personal"]),
@@ -116,7 +118,7 @@ def replace_text_with_tabs(paragraph, replacements):
 
 
 def populate_resume(
-    person_id, db_path, template_path="template.docx", output_file="Resume.docx", filters=None
+    person_id, db_path, job_url, template_path="template.docx", output_file="Resume.docx", filters=None
 ):
     """Loads a Word template and replaces placeholders with actual data."""
     # from docx.shared import Pt, Inches
@@ -124,7 +126,7 @@ def populate_resume(
 
     doc = Document(template_path)
     data = fetch_resume_data(db_path, person_id, filters)
-
+    job_data = get_scraped_job_data(db_path, job_url)
     # Replace placeholders while keeping formatting
 
     # Handle education, publications and employment sections
@@ -187,6 +189,7 @@ def populate_resume(
             original_indent = para.paragraph_format.left_indent
             for position in data["employment"]:
                 i += 1
+                no_resp = False
                 (
                     company,
                     location,
@@ -200,74 +203,76 @@ def populate_resume(
 
                 # if not fields:
                 #     print("No fields.")
-
-                # Reset paragraph indentation for each new company
-                if prev_company != company:
-                    # Reset to original indent (usually 0 for left margin)
-                    current_para.paragraph_format.left_indent = original_indent
-
-                    # Add company with bold formatting
-                    company_run = current_para.add_run(f"{company}")
-                    company_run.bold = True
-                    # Add location if available
-                    location_run = current_para.add_run(f", {location}\n")
-
-                    # Apply font formatting
-                    if original_font:
-                        company_run.font.size = Pt(original_font.size.pt + 2)
-                        company_run.font.name = original_font.name
-                        location_run.font.name = original_font.name
-                        location_run.font.size  = original_font.size
-
-                # Add job title and dates with tab spacing
-                date_range = (
-                    f"{start_date} - {end_date}" if end_date
-                    else f"{start_date} - Present"
-                )
-
-                title_run = current_para.add_run(f"{title}\t{date_range}\n")
-
-                if original_font:
-                    title_run.font.name = original_font.name
-
-                    title_run.font.size = original_font.size
-
-                # Process responsibilities as bullet points
-
                 if responsibilities:
+                    responsibilities = score_and_rank_relevance(job_data, position)
+                if responsibilities is None or responsibilities is []:
+                    pass
+                else:
+                    # Reset paragraph indentation for each new company
+                    if prev_company != company:
+                        # Reset to original indent (usually 0 for left margin)
+                        current_para.paragraph_format.left_indent = original_indent
 
-                    for responsibility in responsibilities.split(";"):
+                        # Add company with bold formatting
+                        company_run = current_para.add_run(f"{company}")
+                        company_run.bold = True
+                        # Add location if available
+                        location_run = current_para.add_run(f", {location}\n")
 
-                        if responsibility.strip():
+                        # Apply font formatting
+                        if original_font:
+                            company_run.font.size = Pt(original_font.size.pt + 2)
+                            company_run.font.name = original_font.name
+                            location_run.font.name = original_font.name
+                            location_run.font.size  = original_font.size
 
-                            # Create a properly formatted bullet point with the dash and spaces
+                    # Add job title and dates with tab spacing
+                    date_range = (
+                        f"{start_date} - {end_date}" if end_date
+                        else f"{start_date} - Present"
+                    )
 
-                            bullet_run = current_para.add_run("•\t")
+                    title_run = current_para.add_run(f"{title}\t{date_range}\n")
 
-                            resp_run = current_para.add_run(
+                    if original_font:
+                        title_run.font.name = original_font.name
 
-                                f"{responsibility.strip()}\n"
+                        title_run.font.size = original_font.size
 
-                            )
+                    # Process responsibilities as bullet points
+                    if responsibilities:
+                        for responsibility in responsibilities:
 
-                            # Preserve font formatting
+                            if responsibility.strip():
 
-                            if original_font:
-                                bullet_run.font.name = original_font.name
+                                # Create a properly formatted bullet point with the dash and spaces
 
-                                bullet_run.font.size = original_font.size
+                                bullet_run = current_para.add_run("•\t")
 
-                                resp_run.font.name = original_font.name
+                                resp_run = current_para.add_run(
 
-                                resp_run.font.size = original_font.size
+                                    f"{responsibility.strip()}\n"
+
+                                )
+
+                                # Preserve font formatting
+
+                                if original_font:
+                                    bullet_run.font.name = original_font.name
+
+                                    bullet_run.font.size = original_font.size
+
+                                    resp_run.font.name = original_font.name
+
+                                    resp_run.font.size = original_font.size
 
 
-                # Update previous company
+                    # Update previous company
 
-                prev_company = company
-                if i < len(data["employment"]):
-                    # Add space between job entries
-                    current_para.add_run("\n")
+                    prev_company = company
+                    if i < len(data["employment"]):
+                        # Add space between job entries
+                        current_para.add_run("\n")
 
         elif "{projects}" in para.text or "{personal_projects}" in para.text:
             if "{projects}" in para.text:
@@ -289,8 +294,7 @@ def populate_resume(
                     project_name, year, technologies, project_link, field, project_type, details
 
                 ) = project
-                print(i)
-                print(len(data[focus]))
+
                 print(field)
 
                 print(project_link)
@@ -387,7 +391,7 @@ def populate_resume(
                 prof_run = current_para.add_run(f"{certification_name}")
                 prof_run.bold = True
 
-                issue_run = current_para.add_run(f"-{issuing_organization} ({context} {date_completed}\n")
+                issue_run = current_para.add_run(f"-{issuing_organization} ({context} {date_completed})\n")
 
                 # Apply font formatting to company name
                 if original_font:
@@ -476,4 +480,6 @@ filters = {"employment_filters": {
         "fields": ["Engineering"],
         "resp_fields": ["Problem Solving", "Technical Consultation", "Data Analysis","Automation ", "Optimization"],
     }}
-populate_resume(1, db_path="resume.db", filters=filters)
+job_url = "https://jobs.jobvite.com/mariners/job/oU1uvfwE"
+# job_url = "https://jobs.cvshealth.com/us/en/job/R0518973/Customer-Service-Representative"
+populate_resume(1, db_path="resume.db", job_url=job_url)#, filters=filters)
