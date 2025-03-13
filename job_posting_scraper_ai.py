@@ -1,5 +1,4 @@
-# from base64 import b64decode
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 import requests
 import json
 
@@ -7,24 +6,39 @@ import keys
 from db_manager import add_job_posting, get_job_postings
 
 def scrape_job_data(posting_url):
-    api_response = requests.post(
-        "https://api.zyte.com/v1/extract",
-        auth=(keys.get_zyte_key(), ""),
-        json={
-            "url": posting_url,
-            "httpResponseBody": True,
-            "jobPosting": True,
-            "jobPostingOptions": {"extractFrom":"httpResponseBody","ai":True},
-        },
-    )
-    # http_response_body: bytes = b64decode(
-    #     api_response.json()["httpResponseBody"])
-    # # with open("http_response_body.html", "wb") as fp:
-    # #      fp.write(http_response_body)
-    job = api_response.json()["jobPosting"]
-    for item in job:
-        print(f"{item}: {job[item]}")
-    return job
+    try:
+        api_response = requests.post(
+            "https://api.zyte.com/v1/extract",
+            auth=(keys.get_zyte_key(), ""),
+            json={
+                "url": posting_url,
+                "httpResponseBody": True,
+                "jobPosting": True,
+                "jobPostingOptions": {"extractFrom": "httpResponseBody", "ai": True},
+            },
+            timeout=10  # Added timeout (10 seconds)
+        )
+
+        # Check for HTTP errors
+        api_response.raise_for_status()
+
+        job = api_response.json().get("jobPosting", {})
+        if not job:
+            print("Warning: No job posting data extracted.")
+            return None
+
+        for item, value in job.items():
+            print(f"{item}: {value}")
+
+        return job
+
+    except requests.exceptions.Timeout:
+        print("Error: Request timed out.")
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return None
+
 
 def process_job_text(job_text):
     client = OpenAI(
@@ -56,7 +70,7 @@ def process_job_text(job_text):
     - Job ID  
     - Hiring Manager (if available)  
     - Hiring Address (if available)  
-    
+
     Return the response as a **valid JSON** object with these exact keys:
     {{
         "job_title": "...",
@@ -85,16 +99,32 @@ def process_job_text(job_text):
             messages=[{"role": "user", "content": prompt}]
         )
 
-        # Print raw response for debugging
-        response_text = completion.choices[0].message.content
+        # Ensure response contains the expected content
+        if not completion.choices or not completion.choices[0].message:
+            print("Error: API returned an unexpected response structure.")
+            return None
+
+        response_text = completion.choices[0].message.content.strip()
         print("\nRaw API Response:", response_text)
 
-        # Attempt to parse the JSON response
-        job_data = json.loads(response_text.strip("```json").strip("```").strip())  # Convert string to dictionary
+        # Ensure JSON is properly extracted
+        json_start = response_text.find("{")
+        json_end = response_text.rfind("}") + 1
+        if json_start == -1 or json_end == 0:
+            print("Error: Failed to locate JSON in response.")
+            return None
+
+        json_data = response_text[json_start:json_end]
+
+        # Parse the JSON response safely
+        job_data = json.loads(json_data)
         return job_data
 
-    except Exception as e:
-        print("Error processing job text:", e)
+    except json.JSONDecodeError as e:
+        print("Error decoding JSON:", e)
+        return None
+    except OpenAIError as e:
+        print("OpenAI API Error:", e)
         return None
 
 

@@ -118,15 +118,15 @@ def replace_text_with_tabs(paragraph, replacements):
 
 
 def populate_resume(
-    person_id, db_path, job_url, template_path="template.docx", output_file="Resume.docx", filters=None
+    person_id, db_path, job_posting_url, template_path="template.docx", output_file="Resume.docx", duty_filters=None
 ):
     """Loads a Word template and replaces placeholders with actual data."""
     # from docx.shared import Pt, Inches
     # from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
     doc = Document(template_path)
-    data = fetch_resume_data(db_path, person_id, filters)
-    job_data = get_scraped_job_data(db_path, job_url)
+    data = fetch_resume_data(db_path, person_id, duty_filters)
+    job_data = get_scraped_job_data(db_path, job_posting_url)
     # Replace placeholders while keeping formatting
 
     # Handle education, publications and employment sections
@@ -189,7 +189,6 @@ def populate_resume(
             original_indent = para.paragraph_format.left_indent
             for position in data["employment"]:
                 i += 1
-                no_resp = False
                 (
                     company,
                     location,
@@ -467,7 +466,7 @@ def populate_resume(
                                 detail_run.font.name = original_font.name
                                 detail_run.font.size = original_font.size
                         if j < len(details) - 1:
-                            current_para.add_run(',')
+                            current_para.add_run(', ')
 
                 if i < len(data["skills"]) - 1:
                     # Add space between job entries
@@ -476,10 +475,11 @@ def populate_resume(
     doc.save(output_file)
     print(f"Resume saved successfully as {output_file}")
 
-filters = {"employment_filters": {
-        "fields": ["Engineering"],
-        "resp_fields": ["Problem Solving", "Technical Consultation", "Data Analysis","Automation ", "Optimization"],
-    }}
-job_url = "https://jobs.jobvite.com/mariners/job/oU1uvfwE"
-# job_url = "https://jobs.cvshealth.com/us/en/job/R0518973/Customer-Service-Representative"
-populate_resume(1, db_path="resume.db", job_url=job_url)#, filters=filters)
+# filters = {"employment_filters": {
+#         "fields": ["Engineering"],
+#         "resp_fields": ["Problem Solving", "Technical Consultation", "Data Analysis","Automation ", "Optimization"],
+#     }}
+if __name__ == "__main__":
+    job_url = "https://jobs.cvshealth.com/us/en/job/R0518973/Customer-Service-Representative"
+    populate_resume(1, db_path = r"resume_generic.db", job_posting_url=job_url)#, filters=filters)
+    # populate_resume(1, db_path="resume.db", job_posting_url=job_url)#, filters=filters)

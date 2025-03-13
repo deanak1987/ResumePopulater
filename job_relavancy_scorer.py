@@ -1,5 +1,3 @@
-from job_posting_scraper_ai import get_scraped_job_data
-from db_manager import get_employment, get_job_postings
 import torch
 from sentence_transformers import SentenceTransformer, util
 from datetime import datetime
@@ -8,32 +6,36 @@ import re  # For extracting year from job_end_year
 def extract_year(date_str):
     """Extracts the year from a date string (e.g., 'Aug. 2020', '2005', 'current')."""
     if not date_str or date_str.lower() in {"current", "present", "now", "ongoing"}:
-        return datetime.datetime.now().year  # Return current year
+        return datetime.now().year  # Return current year
 
     match = re.search(r'(19\d{2}|20\d{2})', date_str)  # Look for a 4-digit year
     return int(match.group(0)) if match else None  # Convert to int if found
 
-def score_and_rank_relevance(job_data=None, past_jobs=None, top_N=5, recency_weight=0.3, relevance_threshold=0.3, max_years_old=10):
+def score_and_rank_relevance(job_disc_data=None, past_employment=None, top_N=5, recency_weight=0.3, relevance_threshold=0.3, max_years_old=10):
     # Use GPU if available
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
 
     # Unpack job_data
-    (id, job_title, company_name, location, job_type, job_description,
-     responsibilities, requirements, preferred_qualifications, technologies,
+    (job_title, company_name, loc, job_type, job_description,
+     duties, requirements, preferred_qualifications, technologies,
      soft_skills, salary_range, application_deadline, application_url,
-     posting_date, job_id, hiring_manager, hiring_address) = job_data
+     posting_date, job_id, hiring_manager, hiring_address) = job_disc_data
 
     # Job posting text
     job_posting = f"""
-    {job_title}\n{job_description}\n{requirements}\n{preferred_qualifications}\n{technologies}\n{soft_skills}
-    """
+        {job_title}\n{job_description}\n{duties}\n{requirements}\n{preferred_qualifications}\n{technologies}\n{soft_skills}
+        """
 
     # Encode job posting once
+    print(f"Encoding data for job posting:\n{company_name} in {loc}, {job_type} with salary: {salary_range}")
+    print(f"""
+        Job ID: {job_id} Posted {posting_date}, Application deadline: {application_deadline}\nPosting URL: {application_url}
+        Hiring manager: {hiring_manager}, Hiring address: {hiring_address}
+        """)
     job_embedding = model.encode(job_posting, convert_to_tensor=True)
 
         # Process each past job independently
-    filtered_jobs = {}
     # print(past_jobs.items())
     (company,
     location,
@@ -41,8 +43,8 @@ def score_and_rank_relevance(job_data=None, past_jobs=None, top_N=5, recency_wei
     start_date,
     end_date,
     field,
-    responsibilities) = past_jobs
-    print(f"{title} at {company}, {location} {start_date} - {end_date}.")
+    responsibilities) = past_employment
+    print(f"{title} at {company}, {location}, {field}, {start_date} - {end_date}.")
     responsibilities = responsibilities.split(";")
 
     # Extract year from the string

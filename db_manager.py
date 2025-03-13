@@ -618,7 +618,7 @@ def get_job_postings(db_path, job_url=None, job_title=None): #-> List:
     # SQL query to fetch job posting(s)
     query = """
         SELECT 
-            id, job_title, company_name, location, job_type, 
+            job_title, company_name, location, job_type, 
             job_description, responsibilities, requirements, 
             preferred_qualifications, technologies, soft_skills, 
             salary_range, application_deadline, application_url, 
