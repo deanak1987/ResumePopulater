@@ -3,24 +3,48 @@ from sentence_transformers import SentenceTransformer, util
 from datetime import datetime
 import re  # For extracting year from job_end_year
 
+
 def extract_year(date_str):
     """Extracts the year from a date string (e.g., 'Aug. 2020', '2005', 'current')."""
     if not date_str or date_str.lower() in {"current", "present", "now", "ongoing"}:
         return datetime.now().year  # Return current year
 
-    match = re.search(r'(19\d{2}|20\d{2})', date_str)  # Look for a 4-digit year
+    match = re.search(r"(19\d{2}|20\d{2})", date_str)  # Look for a 4-digit year
     return int(match.group(0)) if match else None  # Convert to int if found
 
-def score_and_rank_relevance(job_disc_data=None, past_employment=None, top_N=5, recency_weight=0.3, relevance_threshold=0.3, max_years_old=10):
+
+def score_and_rank_relevance(
+    job_disc_data=None,
+    past_employment=None,
+    top_N=5,
+    recency_weight=0.3,
+    relevance_threshold=0.3,
+    max_years_old=10,
+):
     # Use GPU if available
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = SentenceTransformer("all-MiniLM-L6-v2", device=device)
 
     # Unpack job_data
-    (job_title, company_name, loc, job_type, job_description,
-     duties, requirements, preferred_qualifications, technologies,
-     soft_skills, salary_range, application_deadline, application_url,
-     posting_date, job_id, hiring_manager, hiring_address) = job_disc_data
+    (
+        job_title,
+        company_name,
+        loc,
+        job_type,
+        job_description,
+        duties,
+        requirements,
+        preferred_qualifications,
+        technologies,
+        soft_skills,
+        salary_range,
+        application_deadline,
+        application_url,
+        posting_date,
+        job_id,
+        hiring_manager,
+        hiring_address,
+    ) = job_disc_data
 
     # Job posting text
     job_posting = f"""
@@ -28,22 +52,22 @@ def score_and_rank_relevance(job_disc_data=None, past_employment=None, top_N=5, 
         """
 
     # Encode job posting once
-    print(f"Encoding data for job posting:\n{company_name} in {loc}, {job_type} with salary: {salary_range}")
-    print(f"""
+    print(
+        f"Encoding data for job posting:\n{company_name} in {loc}, {job_type} with salary: {salary_range}"
+    )
+    print(
+        f"""
         Job ID: {job_id} Posted {posting_date}, Application deadline: {application_deadline}\nPosting URL: {application_url}
         Hiring manager: {hiring_manager}, Hiring address: {hiring_address}
-        """)
+        """
+    )
     job_embedding = model.encode(job_posting, convert_to_tensor=True)
 
-        # Process each past job independently
+    # Process each past job independently
     # print(past_jobs.items())
-    (company,
-    location,
-    title,
-    start_date,
-    end_date,
-    field,
-    responsibilities) = past_employment
+    (company, location, title, start_date, end_date, field, responsibilities) = (
+        past_employment
+    )
     print(f"{title} at {company}, {location}, {field}, {start_date} - {end_date}.")
     responsibilities = responsibilities.split(";")
 
@@ -64,8 +88,12 @@ def score_and_rank_relevance(job_disc_data=None, past_employment=None, top_N=5, 
     max_relevance = similarities.max().item()
 
     # Compute job recency score
-    recency_score = max(0, 1 - (years_since_job / max_years_old))  # 1 if recent, 0 if too old
-    weighted_score = (recency_weight * recency_score) + ((1 - recency_weight) * avg_relevance)
+    recency_score = max(
+        0, 1 - (years_since_job / max_years_old)
+    )  # 1 if recent, 0 if too old
+    weighted_score = (recency_weight * recency_score) + (
+        (1 - recency_weight) * avg_relevance
+    )
     print(f"RS = {recency_score:.3f}, WS = {weighted_score:.3f}")
     # Decision: Keep the job if it meets relevance and recency criteria
     if years_since_job > max_years_old and max_relevance < 0.3:
@@ -79,7 +107,11 @@ def score_and_rank_relevance(job_disc_data=None, past_employment=None, top_N=5, 
     # The positions that survive past this point are either recent enough or relevant enough to be included.
     # Select the top N most relevant responsibilities
     sorted_indices = torch.argsort(similarities, descending=True)[:top_N]
-    top_responsibilities = [responsibilities[idx] for idx in sorted_indices if similarities[idx].item() > relevance_threshold - 0.1]
+    top_responsibilities = [
+        responsibilities[idx]
+        for idx in sorted_indices
+        if similarities[idx].item() > relevance_threshold - 0.1
+    ]
     # print(top_responsibilities)
     for idx in sorted_indices:
         print(f"Score: {similarities[idx].item():.3f} for {responsibilities[idx]}")

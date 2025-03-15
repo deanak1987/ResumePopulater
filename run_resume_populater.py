@@ -12,11 +12,13 @@ from db_manager import (
 generic = False
 if generic:
     from db_loader_generic import load_generic
+
     db_path = r"resume_generic.db"
     setup_db.db_builder(db_path)
     load_generic(db_path)
 else:
     from db_loader import load_info
+
     db_path = r"resume.db"
     setup_db.db_builder(db_path)
     load_info(db_path)
@@ -45,7 +47,7 @@ for s in sk:
     print(s)
 
 print("\nProjects")
-pjs = get_projects(db_path, 1)#, fields=["Data Science", "Data Analysis"])
+pjs = get_projects(db_path, 1)  # , fields=["Data Science", "Data Analysis"])
 for pj in pjs:
     print(pj)
 # job_url = "https://www.governmentjobs.com/careers/tacoma/jobs/4779178/customer-service-representative"  # Replace with actual job URL

@@ -18,9 +18,7 @@ def fetch_resume_data(db_path, person_id, search_filters=None):
     """Fetches all resume-related data from the database."""
     if search_filters is None:
         search_filters = {}
-    (full_name, email, linkedin, github) = get_person_info(
-        db_path, person_id
-    )
+    (full_name, email, linkedin, github) = get_person_info(db_path, person_id)
 
     return {
         "full_name": full_name,
@@ -28,12 +26,16 @@ def fetch_resume_data(db_path, person_id, search_filters=None):
         "linkedin": linkedin,
         "github": github,
         "education": get_education(db_path, person_id),
-        "employment": get_employment(db_path, person_id),#, search_filters["employment_filters"]),
+        "employment": get_employment(
+            db_path, person_id
+        ),  # , search_filters["employment_filters"]),
         "publications": get_publications(db_path, person_id),
-        "projects": get_projects(db_path, person_id, fields=["Data Science"], exclude_fields=["Personal"]),
+        "projects": get_projects(
+            db_path, person_id, fields=["Data Science"], exclude_fields=["Personal"]
+        ),
         "personal_projects": get_projects(db_path, person_id, types=["Personal"]),
         "professional_development": get_professional_development(db_path, person_id),
-        "skills": get_skills(db_path, person_id)
+        "skills": get_skills(db_path, person_id),
     }
 
 
@@ -118,7 +120,12 @@ def replace_text_with_tabs(paragraph, replacements):
 
 
 def populate_resume(
-    person_id, db_path, job_posting_url, template_path="template.docx", output_file="Resume.docx", duty_filters=None
+    person_id,
+    db_path,
+    job_posting_url,
+    template_path="template.docx",
+    output_file="Resume.docx",
+    duty_filters=None,
 ):
     """Loads a Word template and replaces placeholders with actual data."""
     # from docx.shared import Pt, Inches
@@ -223,11 +230,12 @@ def populate_resume(
                             company_run.font.size = Pt(original_font.size.pt + 2)
                             company_run.font.name = original_font.name
                             location_run.font.name = original_font.name
-                            location_run.font.size  = original_font.size
+                            location_run.font.size = original_font.size
 
                     # Add job title and dates with tab spacing
                     date_range = (
-                        f"{start_date} - {end_date}" if end_date
+                        f"{start_date} - {end_date}"
+                        if end_date
                         else f"{start_date} - Present"
                     )
 
@@ -249,9 +257,7 @@ def populate_resume(
                                 bullet_run = current_para.add_run("•\t")
 
                                 resp_run = current_para.add_run(
-
                                     f"{responsibility.strip()}\n"
-
                                 )
 
                                 # Preserve font formatting
@@ -264,7 +270,6 @@ def populate_resume(
                                     resp_run.font.name = original_font.name
 
                                     resp_run.font.size = original_font.size
-
 
                     # Update previous company
 
@@ -290,8 +295,13 @@ def populate_resume(
             for project in data[focus]:
                 i += 1
                 (
-                    project_name, year, technologies, project_link, field, project_type, details
-
+                    project_name,
+                    year,
+                    technologies,
+                    project_link,
+                    field,
+                    project_type,
+                    details,
                 ) = project
 
                 print(field)
@@ -322,7 +332,9 @@ def populate_resume(
 
                     project_run.font.size = original_font.size
 
-                tools_run = current_para.add_run(f"Tools & Technologies: {technologies}\n")
+                tools_run = current_para.add_run(
+                    f"Tools & Technologies: {technologies}\n"
+                )
 
                 if original_font:
                     tools_run.font.name = original_font.name
@@ -341,11 +353,7 @@ def populate_resume(
 
                             bullet_run = current_para.add_run("•\t")
 
-                            detail_run = current_para.add_run(
-
-                                f"{detail.strip()}\n"
-
-                            )
+                            detail_run = current_para.add_run(f"{detail.strip()}\n")
 
                             # Preserve font formatting
 
@@ -390,7 +398,9 @@ def populate_resume(
                 prof_run = current_para.add_run(f"{certification_name}")
                 prof_run.bold = True
 
-                issue_run = current_para.add_run(f"-{issuing_organization} ({context} {date_completed})\n")
+                issue_run = current_para.add_run(
+                    f"-{issuing_organization} ({context} {date_completed})\n"
+                )
 
                 # Apply font formatting to company name
                 if original_font:
@@ -406,9 +416,7 @@ def populate_resume(
                             # Create a properly formatted bullet point with the dash and spaces
                             bullet_run = current_para.add_run("•\t")
 
-                            detail_run = current_para.add_run(
-                                f"{detail.strip()}\n"
-                            )
+                            detail_run = current_para.add_run(f"{detail.strip()}\n")
 
                             # Preserve font formatting
                             if original_font:
@@ -431,10 +439,7 @@ def populate_resume(
             original_indent = para.paragraph_format.left_indent
 
             for skills in data["skills"]:
-                (
-                    skill,
-                    details
-                ) = skills
+                (skill, details) = skills
 
                 # Reset paragraph indentation for each new company
 
@@ -449,7 +454,6 @@ def populate_resume(
                     skill_run.font.name = original_font.name
                     skill_run.font.size = original_font.size
 
-
                 # Process details as bullet points
                 if details:
                     j = 0
@@ -457,16 +461,14 @@ def populate_resume(
                         if detail.strip():
                             # Create a properly formatted bullet point with the dash and spaces
 
-                            detail_run = current_para.add_run(
-                                f"{detail.strip()}"
-                            )
+                            detail_run = current_para.add_run(f"{detail.strip()}")
 
                             # Preserve font formatting
                             if original_font:
                                 detail_run.font.name = original_font.name
                                 detail_run.font.size = original_font.size
                         if j < len(details) - 1:
-                            current_para.add_run(', ')
+                            current_para.add_run(", ")
 
                 if i < len(data["skills"]) - 1:
                     # Add space between job entries
@@ -474,6 +476,7 @@ def populate_resume(
 
     doc.save(output_file)
     print(f"Resume saved successfully as {output_file}")
+
 
 # filters = {"employment_filters": {
 #         "fields": ["Engineering"],
@@ -483,4 +486,6 @@ if __name__ == "__main__":
     # job_url = "https://jobs.cvshealth.com/us/en/job/R0518973/Customer-Service-Representative"
     job_url = "https://guidehouse.wd1.myworkdayjobs.com/en-US/External/details/AI---ML-Engineer_28054?q=Data&locations=56903c4a7d6b1000e217597da6360000"
     # populate_resume(1, db_path = r"resume_generic.db", job_posting_url=job_url)#, filters=filters)
-    populate_resume(1, db_path="resume.db", job_posting_url=job_url)#, filters=filters)
+    populate_resume(
+        1, db_path="resume.db", job_posting_url=job_url
+    )  # , filters=filters)
