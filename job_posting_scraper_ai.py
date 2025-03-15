@@ -1,15 +1,15 @@
 from openai import OpenAI, OpenAIError
 import requests
 import json
-
-import keys
+import os
+from dotenv import load_dotenv
 from db_manager import add_job_posting, get_job_postings
-
+load_dotenv()
 def scrape_job_data(posting_url):
     try:
         api_response = requests.post(
             "https://api.zyte.com/v1/extract",
-            auth=(keys.get_zyte_key(), ""),
+            auth=(os.getenv("ZYTE_API_KEY"), ""),
             json={
                 "url": posting_url,
                 "httpResponseBody": True,
@@ -42,7 +42,7 @@ def scrape_job_data(posting_url):
 
 def process_job_text(job_text):
     client = OpenAI(
-        api_key=keys.get_gpt_key()
+        api_key=os.getenv("OPENAI_API_KEY")
     )
     prompt = f"""
     Here is a job posting:
