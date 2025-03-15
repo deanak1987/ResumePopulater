@@ -1,5 +1,6 @@
 # from job_posting_scraper import scrape_job
 import setup_db
+import os
 from db_manager import (
     get_person_info,
     get_education,
@@ -9,17 +10,18 @@ from db_manager import (
     get_projects,
 )
 
-generic = False
-if generic:
+if os.path.exists("db_loader.py"):
+    from db_loader import load_info
+
+    db_path = r"resume.db"
+    setup_db.db_builder(db_path)
+    load_info(db_path)
+else:
     from db_loader_generic import load_generic
     db_path = r"resume_generic.db"
     setup_db.db_builder(db_path)
     load_generic(db_path)
-else:
-    from db_loader import load_info
-    db_path = r"resume.db"
-    setup_db.db_builder(db_path)
-    load_info(db_path)
+
 
 full_name, email, linkedin, github = get_person_info(db_path, 1)
 print(f"\n{full_name}, {email}, {linkedin}, {github}\n")
