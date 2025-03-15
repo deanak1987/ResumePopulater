@@ -9,7 +9,7 @@ from db_manager import (
     get_projects,
 )
 
-generic = True
+generic = False
 if generic:
     from db_loader_generic import load_generic
     db_path = r"resume_generic.db"
@@ -19,7 +19,8 @@ else:
     from db_loader import load_info
     db_path = r"resume.db"
     setup_db.db_builder(db_path)
-    # load_info(db_path)
+    load_info(db_path)
+
 full_name, email, linkedin, github = get_person_info(db_path, 1)
 print(f"\n{full_name}, {email}, {linkedin}, {github}\n")
 

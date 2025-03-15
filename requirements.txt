@@ -3,7 +3,7 @@ Jinja2  # For generating resumes dynamically
 reportlab  # If you want to generate PDFs directly
 PyPDF2
 pdfplumber
-python-docx==0.8.11
+python-docx #==0.8.11
 pandas
 selenium
 webdriver_manager

@@ -480,6 +480,7 @@ def populate_resume(
 #         "resp_fields": ["Problem Solving", "Technical Consultation", "Data Analysis","Automation ", "Optimization"],
 #     }}
 if __name__ == "__main__":
-    job_url = "https://jobs.cvshealth.com/us/en/job/R0518973/Customer-Service-Representative"
-    populate_resume(1, db_path = r"resume_generic.db", job_posting_url=job_url)#, filters=filters)
-    # populate_resume(1, db_path="resume.db", job_posting_url=job_url)#, filters=filters)
+    # job_url = "https://jobs.cvshealth.com/us/en/job/R0518973/Customer-Service-Representative"
+    job_url = "https://guidehouse.wd1.myworkdayjobs.com/en-US/External/details/AI---ML-Engineer_28054?q=Data&locations=56903c4a7d6b1000e217597da6360000"
+    # populate_resume(1, db_path = r"resume_generic.db", job_posting_url=job_url)#, filters=filters)
+    populate_resume(1, db_path="resume.db", job_posting_url=job_url)#, filters=filters)
