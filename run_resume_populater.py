@@ -1,4 +1,3 @@
-# from job_posting_scraper import scrape_job
 import setup_db
 import os
 from db_manager import (
@@ -12,7 +11,6 @@ from db_manager import (
 
 if os.path.exists("db_loader.py"):
     from db_loader import load_info
-
     db_path = r"resume.db"
     setup_db.db_builder(db_path)
     load_info(db_path)

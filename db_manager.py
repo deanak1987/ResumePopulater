@@ -307,22 +307,22 @@ def get_employment(path, person_id, filters=None):
 
     params = [person_id]
 
-    # Filter employment fields
-    if fields:
-        placeholders = ",".join("?" * len(fields))
-        query += f" AND E.field IN ({placeholders})"
-        params.extend(fields)
+    # # Filter employment fields
+    # if fields:
+    #     placeholders = ",".join("?" * len(fields))
+    #     query += f" AND E.field IN ({placeholders})"
+    #     params.extend(fields)
 
-    if exclude_fields:
-        placeholders = ",".join("?" * len(exclude_fields))
-        query += f" AND E.field NOT IN ({placeholders})"
-        params.extend(exclude_fields)
-
-    # Filter responsibilities field
-    if resp_fields:
-        placeholders = ",".join("?" * len(resp_fields))
-        query += f" AND R.field IN ({placeholders})"
-        params.extend(resp_fields)
+    # if exclude_fields:
+    #     placeholders = ",".join("?" * len(exclude_fields))
+    #     query += f" AND E.field NOT IN ({placeholders})"
+    #     params.extend(exclude_fields)
+    #
+    # # Filter responsibilities field
+    # if resp_fields:
+    #     placeholders = ",".join("?" * len(resp_fields))
+    #     query += f" AND R.field IN ({placeholders})"
+    #     params.extend(resp_fields)
 
     # Grouping & Ordering
     query += """

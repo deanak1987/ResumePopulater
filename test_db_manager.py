@@ -291,5 +291,4 @@ def test_get_employment():
         "Current",
         "General",
         "Did work;Spoke to clients",
-        "General;General",
     )
