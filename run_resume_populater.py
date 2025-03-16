@@ -9,14 +9,17 @@ from db_manager import (
     get_projects,
 )
 
-if os.path.exists("db_loader.py"):
-    from db_loader import load_info
-    db_path = r"resume.db"
-    setup_db.db_builder(db_path)
-    load_info(db_path)
-else:
+try:
+    if os.path.exists("db_loader.py"):
+        from db_loader import load_info
+        db_path = "resume.db"
+        setup_db.db_builder(db_path)
+        load_info(db_path)
+    else:
+        raise ImportError  # Force fallback if db_loader isn't available
+except ImportError:
     from db_loader_generic import load_generic
-    db_path = r"resume_generic.db"
+    db_path = "resume_generic.db"
     setup_db.db_builder(db_path)
     load_generic(db_path)
 
@@ -45,7 +48,7 @@ for s in sk:
     print(s)
 
 print("\nProjects")
-pjs = get_projects(db_path, 1)#, fields=["Data Science", "Data Analysis"])
+pjs = get_projects(db_path, 1)  # , fields=["Data Science", "Data Analysis"])
 for pj in pjs:
     print(pj)
 # job_url = "https://www.governmentjobs.com/careers/tacoma/jobs/4779178/customer-service-representative"  # Replace with actual job URL

@@ -4,7 +4,10 @@ import json
 import os
 from dotenv import load_dotenv
 from db_manager import add_job_posting, get_job_postings
+
 load_dotenv()
+
+
 def scrape_job_data(posting_url):
     try:
         api_response = requests.post(
@@ -16,7 +19,7 @@ def scrape_job_data(posting_url):
                 "jobPosting": True,
                 "jobPostingOptions": {"extractFrom": "httpResponseBody", "ai": True},
             },
-            timeout=10  # Added timeout (10 seconds)
+            timeout=10,  # Added timeout (10 seconds)
         )
 
         # Check for HTTP errors
@@ -41,9 +44,7 @@ def scrape_job_data(posting_url):
 
 
 def process_job_text(job_text):
-    client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY")
-    )
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     prompt = f"""
     Here is a job posting:
 
@@ -95,8 +96,7 @@ def process_job_text(job_text):
 
     try:
         completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}]
+            model="gpt-4o-mini", messages=[{"role": "user", "content": prompt}]
         )
 
         # Ensure response contains the expected content
@@ -142,4 +142,3 @@ def get_scraped_job_data(db_path, job_url):
         print("Job posting already in the database")
         job_data = get_job_postings(db_path=db_path, job_url=job_url)[0]
     return job_data
-

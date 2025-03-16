@@ -90,7 +90,7 @@ def load_generic(db_path):
         [
             "Worked hard",
             "Helped customers",
-            ],
+        ],
         [
             "General",
             "Customer Service",
@@ -105,15 +105,10 @@ def load_generic(db_path):
         "Jan. 2010",
         "Certified",
         "General",
-        ["Working Hard"]
+        ["Working Hard"],
     )
 
-    add_skills(
-        db_path,
-        1,
-        "Working",
-        ["Working hard", "Don't stop"]
-    )
+    add_skills(db_path, 1, "Working", ["Working hard", "Don't stop"])
 
     add_certification(db_path, 1, "Cool Dude", "Studs", 2017, None, "Cool Guys")
     # Fetch education with coursework for Person ID = 1
