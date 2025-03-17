@@ -487,5 +487,5 @@ if __name__ == "__main__":
     job_url = "https://guidehouse.wd1.myworkdayjobs.com/en-US/External/details/AI---ML-Engineer_28054?q=Data&locations=56903c4a7d6b1000e217597da6360000"
     # populate_resume(1, db_path = r"resume_generic.db", job_posting_url=job_url)#, filters=filters)
     populate_resume(
-        1, db_path="resume.db", job_posting_url=job_url
+        1, db_path="resume_generic.db", job_posting_url=job_url
     )  # , filters=filters)

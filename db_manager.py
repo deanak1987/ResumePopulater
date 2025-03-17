@@ -9,7 +9,6 @@ def execute_query(path, query, params=()):
     conn.commit()
     conn.close()
 
-
 def fetch_data(path, query, params=()):
     """Fetches data based on a given SQL query."""
     conn = sqlite3.connect(path)
@@ -95,7 +94,15 @@ def add_education(
     print(
         f"Education record added for Person ID {person_id} at {institution} from {graduation_year} with gpa of {graduation_gpa}"
     )
-
+    # Retrieve the last inserted education_id
+    conn = sqlite3.connect(path)
+    cursor = conn.cursor()
+    query = """SELECT id FROM Education WHERE degree = ? AND institution = ?"""
+    cursor.execute(query, (degree, institution))
+    education_id = cursor.fetchone()[0]  # Fetch one matching record
+    conn.close()
+    print(education_id)
+    return education_id
 
 def add_coursework(
     path, education_id, course_name, course_id, term, year, gpa, course_credits, field
@@ -110,27 +117,6 @@ def add_coursework(
     print(
         f"Added course {course_id}: {course_name} for {course_credits} credits and GPA of {gpa} to Education ID {education_id}."
     )
-
-
-# def get_education(path, person_id):
-#     """Fetches education records for a person."""
-#     query = """
-#         SELECT Education.degree, Education.institution, Education.graduation_year, Education.graduation_gpa
-#         FROM Education
-#         WHERE Education.person_id = ?
-#         ORDER BY Education.graduation_year DESC
-#     """
-#     results = fetch_data(path, query, (person_id,))
-#
-#     output = ""
-#     if results:
-#         output += f"Education for Person ID {person_id}:\n"
-#         for row in results:
-#             degree, institution, grad_year, gpa = row
-#             output += f"{degree} from {institution} acquired in {grad_year} with a GPA of {gpa}\n"
-#     else:
-#         output += f"No education records found for Person ID {person_id}."
-#     return output
 
 
 def get_education(path, person_id):
