@@ -89,7 +89,7 @@ def score_and_rank_relevance(
 
     # Compute job recency score
     recency_score = max(
-        0, 1 - (years_since_job / max_years_old)
+        0, 1.0 - (float(years_since_job) / float(max_years_old))
     )  # 1 if recent, 0 if too old
     weighted_score = (recency_weight * recency_score) + (
         (1 - recency_weight) * avg_relevance
