@@ -1,6 +1,7 @@
 import pdfplumber
 import json
 import openai
+from openai import OpenAIError
 from dotenv import load_dotenv
 import os
 from db_manager import add_education, add_coursework, get_education
@@ -10,6 +11,7 @@ load_dotenv()
 # OpenAI API key (replace with your actual key)
 API_KEY = os.getenv("OPENAI_API_KEY")
 
+
 def extract_text_from_pdf(pdf_path):
     """Extracts text from a given PDF file."""
     text = ""
@@ -17,6 +19,7 @@ def extract_text_from_pdf(pdf_path):
         for page in pdf.pages:
             text += page.extract_text() + "\n"
     return text.strip()
+
 
 def process_transcript_with_gpt(transcript_text):
     """Uses OpenAI GPT to extract degree and course information from the transcript text."""
@@ -66,25 +69,35 @@ def process_transcript_with_gpt(transcript_text):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}]
+            model="gpt-4o-mini", messages=[{"role": "user", "content": prompt}]
         )
 
         response_text = response.choices[0].message.content
 
         # Convert response to JSON
-        transcript_data = json.loads(response_text.strip("```json").strip("```").strip())
+        try:
+            transcript_data = json.loads(
+                response_text.strip("```json").strip("```").strip()
+            )
+        except json.JSONDecodeError as json_error:
+            print("JSON decoding error:", json_error)
+            return None
+
         return transcript_data
 
-    except Exception as e:
-        print("Error processing transcript:", e)
-        return None
+    except OpenAIError as api_error:
+        print("OpenAI API error:", api_error)
+    except json.JSONDecodeError as json_error:
+        print("JSON decoding error:", json_error)
+    return None
 
-# def save_json(data, output_path):
-#     """Saves extracted data to a JSON file."""
-#     with open(output_path, "w", encoding="utf-8") as f:
-#         json.dump(data, f, indent=4)
-#     print(f"Transcript data saved to {output_path}")
+
+def save_json(data, output_path):
+    """Saves extracted data to a JSON file."""
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+    print(f"Transcript data saved to {output_path}")
+
 
 def save_transcript_to_db(db_path_fn, person_id, transcript_data):
     """Saves extracted transcript data into the database."""
@@ -96,15 +109,37 @@ def save_transcript_to_db(db_path_fn, person_id, transcript_data):
     term_system = transcript_data["term_system"]
 
     for degree in transcript_data["degrees"]:
-        education_id = add_education(db_path_fn, person_id, degree["degree"], institution, term_system, degree["graduation_year"], degree["graduation_gpa"])
+        education_id = add_education(
+            db_path_fn,
+            person_id,
+            degree["degree"],
+            institution,
+            term_system,
+            degree["graduation_year"],
+            degree["graduation_gpa"],
+        )
 
         for course in transcript_data["courses"]:
-            # field = degree["degree"]  # Assuming field relates to the degree
-            add_coursework(db_path_fn, education_id, course["course_name"], course["course_id"], course["term"], course["year"], course["gpa"], course["course_credits"], course["field"])
+            add_coursework(
+                db_path_fn,
+                education_id,
+                course["course_name"],
+                course["course_id"],
+                course["term"],
+                course["year"],
+                course["gpa"],
+                course["course_credits"],
+                course["field"],
+            )
+
 
 def main():
-    pdf_paths = ["OlympicCollegeTranscripts12-2-2020.pdf", "Final Graduation WSU Transcript.pdf", "UWUnofficialTranscript FINAL.pdf"]
-    output_json = "transcript_data.json"
+    pdf_paths = [
+        "OlympicCollegeTranscripts12-2-2020.pdf",
+        "Final Graduation WSU Transcript.pdf",
+        "UWUnofficialTranscript FINAL.pdf",
+    ]
+    # output_json = "transcript_data.json"
 
     for pdf_path in pdf_paths:
         print("Extracting text from PDF...")
@@ -120,6 +155,7 @@ def main():
             save_transcript_to_db(db_path_file_name, 1, transcript_data)
         # get_education_with_coursework(db_path, 1)
         # save_json(transcript_data, output_json)
+
 
 if __name__ == "__main__":
     main()

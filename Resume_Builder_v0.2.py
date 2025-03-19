@@ -13,6 +13,7 @@ from db_manager import (
 from job_relavancy_scorer import score_and_rank_relevance
 from job_posting_scraper_ai import get_scraped_job_data
 
+
 def fetch_resume_data(db_path, person_id, search_filters=None):
     """Fetches all resume-related data from the database."""
     if search_filters is None:
@@ -44,7 +45,7 @@ def build_resume(
     job_posting_url,
     output_file="formatted_document.docx",
     duty_filters=None,
-    ):
+):
 
     # Create a new document
     doc = Document()
@@ -76,9 +77,9 @@ def build_resume(
     # Define tab stops
     usable_width = float(sections[0].page_width.inches) - (2.0 * margin)
     tab_stops = p2.paragraph_format.tab_stops
-    tab_stops.add_tab_stop(Inches(0))      # Left-aligned word
-    tab_stops.add_tab_stop(Inches(usable_width / 2), 1)   # Center-aligned word
-    tab_stops.add_tab_stop(Inches(usable_width), 2)   # Right-aligned word
+    tab_stops.add_tab_stop(Inches(0))  # Left-aligned word
+    tab_stops.add_tab_stop(Inches(usable_width / 2), 1)  # Center-aligned word
+    tab_stops.add_tab_stop(Inches(usable_width), 2)  # Right-aligned word
 
     # Add the text with tab characters
     run2 = p2.add_run(f"{data['email']}\t{data['linkedin']}\t{data['github']}\t")
@@ -96,7 +97,7 @@ def build_resume(
     p4.paragraph_format.space_before = Pt(0)
     p4.paragraph_format.space_after = Pt(0)
     tab_stops = p4.paragraph_format.tab_stops
-    tab_stops.add_tab_stop(Inches(margin /2))  # Left-aligned word
+    tab_stops.add_tab_stop(Inches(margin / 2))  # Left-aligned word
     run4 = p4.add_run("\tPersonal Statement goes here...")
     run4.font.size = Pt(10)
 
@@ -115,7 +116,9 @@ def build_resume(
                     tab_stops.add_tab_stop(Inches(0))  # Left-aligned word
                     tab_stops.add_tab_stop(Inches(margin / 2))  # Left-aligned word
                     tab_stops.add_tab_stop(Inches(margin))  # Left-aligned word
-                    tab_stops.add_tab_stop(Inches(usable_width - margin), 2)  # Right-aligned word
+                    tab_stops.add_tab_stop(
+                        Inches(usable_width - margin), 2
+                    )  # Right-aligned word
 
                     for degree, institution, graduation_year, gpa in data["education"]:
                         run = para.add_run(f"\n\t{institution}, \t{graduation_year}\n")
@@ -125,7 +128,7 @@ def build_resume(
                         degree_run.font.size = Pt(10)
             if item == "employment":
                 if data[item]:
-                    prev_company= ""
+                    prev_company = ""
                     for position in data["employment"]:
                         (
                             company,
@@ -139,7 +142,9 @@ def build_resume(
                         ) = position
 
                         if responsibilities:
-                            responsibilities = score_and_rank_relevance(job_data, position)
+                            responsibilities = score_and_rank_relevance(
+                                job_data, position
+                            )
                         if responsibilities is None or responsibilities is []:
                             pass
                         else:
@@ -148,9 +153,13 @@ def build_resume(
                             run.bold = True
                             tab_stops = para.paragraph_format.tab_stops
                             tab_stops.add_tab_stop(Inches(0))  # Left-aligned word
-                            tab_stops.add_tab_stop(Inches(margin / 2))  # Left-aligned word
+                            tab_stops.add_tab_stop(
+                                Inches(margin / 2)
+                            )  # Left-aligned word
                             tab_stops.add_tab_stop(Inches(margin))  # Left-aligned word
-                            tab_stops.add_tab_stop(Inches(usable_width - margin), 2)  # Right-aligned word
+                            tab_stops.add_tab_stop(
+                                Inches(usable_width - margin), 2
+                            )  # Right-aligned word
 
                             # Reset paragraph indentation for each new company
                             emp_para = doc.add_paragraph()
@@ -158,9 +167,13 @@ def build_resume(
                             emp_para.paragraph_format.space_after = Pt(0)
                             tab_stops = emp_para.paragraph_format.tab_stops
                             tab_stops.add_tab_stop(Inches(0))  # Left-aligned word
-                            tab_stops.add_tab_stop(Inches(margin / 2))  # Left-aligned word
+                            tab_stops.add_tab_stop(
+                                Inches(margin / 2)
+                            )  # Left-aligned word
                             tab_stops.add_tab_stop(Inches(margin))  # Left-aligned word
-                            tab_stops.add_tab_stop(Inches(usable_width - margin), 2)  # Right-aligned word
+                            tab_stops.add_tab_stop(
+                                Inches(usable_width - margin), 2
+                            )  # Right-aligned word
 
                             if prev_company != company:
                                 # Add company with bold formatting
@@ -184,14 +197,20 @@ def build_resume(
 
                             # Process responsibilities as bullet points
                             if responsibilities:
-                                for responsibility in responsibilities.split(';'):
+                                for responsibility in responsibilities.split(";"):
 
                                     if responsibility.strip():
                                         # Create a properly formatted bullet point with the dash and spaces
-                                        bullet_para = doc.add_paragraph(style='List Bullet')
-                                        bullet_para.paragraph_format.space_before = Pt(0)
+                                        bullet_para = doc.add_paragraph(
+                                            style="List Bullet"
+                                        )
+                                        bullet_para.paragraph_format.space_before = Pt(
+                                            0
+                                        )
                                         bullet_para.paragraph_format.space_after = Pt(0)
-                                        bullet_para.paragraph_format.left_indent = Inches(margin * 1.5)
+                                        bullet_para.paragraph_format.left_indent = (
+                                            Inches(margin * 1.5)
+                                        )
                                         bullet_run = bullet_para.add_run(
                                             f"{responsibility.strip()}"
                                         )
@@ -211,7 +230,6 @@ def build_resume(
                 run = para.add_run(section_title)
                 run.font.size = Pt(12)
                 run.bold = True
-
 
                 for project in data[focus]:
                     (
@@ -254,20 +272,30 @@ def build_resume(
                         for detail in details.split(";"):
                             if detail.strip():
                                 # Create a properly formatted bullet point with the dash and spaces
-                                bullet_para = doc.add_paragraph(style='List Bullet')
+                                bullet_para = doc.add_paragraph(style="List Bullet")
                                 bullet_para.paragraph_format.space_before = Pt(0)
                                 bullet_para.paragraph_format.space_after = Pt(0)
-                                bullet_para.paragraph_format.left_indent = Inches(margin)
+                                bullet_para.paragraph_format.left_indent = Inches(
+                                    margin
+                                )
                                 detail_run = bullet_para.add_run(f"{detail.strip()}")
                                 detail_run.font.size = Pt(10)
-
+                        if project_type:
+                            continue
+                        if project_link:
+                            link_para = doc.add_paragraph()
+                            link_para.paragraph_format.space_before = Pt(0)
+                            link_para.paragraph_format.space_after = Pt(0)
+                            link_para.paragraph_format.left_indent = Inches(margin)
+                            link_run = link_para.add_run(f"{project_link}")
+                            link_run.font.size = Pt(10)
+                            link_run.underline = True
 
     # Save the document
     print(f"Saving file as {output_file}")
     doc.save(output_file)
 
+
 if __name__ == "__main__":
     job_url = "https://sjobs.brassring.com/TGnewUI/Search/Home/Home?partnerid=26336&siteid=5014#jobDetails=1572907_5014"
-    build_resume(
-        1, db_path="resume.db", job_posting_url=job_url
-    )  # , filters=filters)
+    build_resume(1, db_path="resume.db", job_posting_url=job_url)  # , filters=filters)

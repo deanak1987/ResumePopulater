@@ -9,6 +9,7 @@ def execute_query(path, query, params=()):
     conn.commit()
     conn.close()
 
+
 def fetch_data(path, query, params=()):
     """Fetches data based on a given SQL query."""
     conn = sqlite3.connect(path)
@@ -103,6 +104,7 @@ def add_education(
     conn.close()
     print(education_id)
     return education_id
+
 
 def add_coursework(
     path, education_id, course_name, course_id, term, year, gpa, course_credits, field
@@ -346,6 +348,7 @@ def get_employment(path, person_id, filters=None):
         print(f"❌ Database error: {e}")
         return []
 
+
 def add_professional_development(
     path,
     person_id,
@@ -431,12 +434,8 @@ def get_professional_development(path, person_id):
         print(f"❌ Database error: {e}")
         return []
 
-def add_skills(
-    path,
-    person_id,
-    skill,
-    details
-):
+
+def add_skills(path, person_id, skill, details):
     """Adds a professional development entry to the database."""
     try:
         with sqlite3.connect(path) as conn:
@@ -463,9 +462,7 @@ def add_skills(
                 )
 
             conn.commit()
-            print(
-                f"✅ Added skill: {skill} for person_id: {person_id}"
-            )
+            print(f"✅ Added skill: {skill} for person_id: {person_id}")
 
     except sqlite3.Error as e:
         print(f"❌ Database error: {e}")
@@ -490,11 +487,17 @@ def get_skills(path, person_id):
         print(f"❌ Database error: {e}")
         return []
 
+
 def add_project(
     path,
     person_id,
-    project_name, year, technologies, project_link, field, project_type,
-    details
+    project_name,
+    year,
+    technologies,
+    project_link,
+    field,
+    project_type,
+    details,
 ):
     """Adds a professional development entry to the database."""
     try:
@@ -509,7 +512,12 @@ def add_project(
                 """,
                 (
                     person_id,
-                    project_name, year, technologies, project_link, field, project_type,
+                    project_name,
+                    year,
+                    technologies,
+                    project_link,
+                    field,
+                    project_type,
                 ),
             )
             project_id = cursor.lastrowid  # Get the last inserted ID
@@ -518,19 +526,20 @@ def add_project(
             if details and isinstance(details, list):
                 data = [(project_id, item) for item in details]
                 cursor.executemany(
-                    "INSERT INTO ProjectDetails (project_id, detail) VALUES (?, ?)", data
+                    "INSERT INTO ProjectDetails (project_id, detail) VALUES (?, ?)",
+                    data,
                 )
 
             conn.commit()
-            print(
-                f"✅ Added project: {project_name} for person_id: {person_id}"
-            )
+            print(f"✅ Added project: {project_name} for person_id: {person_id}")
 
     except sqlite3.Error as e:
         print(f"❌ Database error: {e}")
 
 
-def get_projects(path, person_id, fields=None, types=None, exclude_fields=None, exclude_types=None):
+def get_projects(
+    path, person_id, fields=None, types=None, exclude_fields=None, exclude_types=None
+):
     """Fetches professional development records for a person, filtered by field and type."""
     query = """
         SELECT P.project_name, P.year, P.technologies, P.project_link, P.field, P.project_type, 
@@ -575,7 +584,8 @@ def add_job_posting(db_path, job_data):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO Job_Postings (
             job_title, company_name, location, job_type, job_description,
             responsibilities, requirements, preferred_qualifications, technologies,
@@ -584,20 +594,33 @@ def add_job_posting(db_path, job_data):
         ) VALUES (
             ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         )
-    """, (
-        job_data["job_title"], job_data["company_name"], job_data["location"],
-        job_data["job_type"], job_data["job_description"], job_data["responsibilities"],
-        job_data["requirements"], job_data["preferred_qualifications"], job_data["technologies"],
-        job_data["soft_skills"], job_data["salary_range"], job_data["application_deadline"],
-        job_data["application_url"], job_data["posting_date"], job_data["job_id"],
-        job_data["hiring_manager"], job_data["hiring_address"]
-    ))
+    """,
+        (
+            job_data["job_title"],
+            job_data["company_name"],
+            job_data["location"],
+            job_data["job_type"],
+            job_data["job_description"],
+            job_data["responsibilities"],
+            job_data["requirements"],
+            job_data["preferred_qualifications"],
+            job_data["technologies"],
+            job_data["soft_skills"],
+            job_data["salary_range"],
+            job_data["application_deadline"],
+            job_data["application_url"],
+            job_data["posting_date"],
+            job_data["job_id"],
+            job_data["hiring_manager"],
+            job_data["hiring_address"],
+        ),
+    )
 
     conn.commit()
     conn.close()
 
 
-def get_job_postings(db_path, job_url=None, job_title=None): #-> List:
+def get_job_postings(db_path, job_url=None, job_title=None):  # -> List:
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -632,6 +655,7 @@ def get_job_postings(db_path, job_url=None, job_title=None): #-> List:
 
     conn.close()
     return rows
+
 
 def get_schema(path):
     """Fetches SQL DB schema"""
