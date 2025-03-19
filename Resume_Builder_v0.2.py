@@ -286,7 +286,7 @@ def build_resume(
                             link_para.paragraph_format.space_before = Pt(0)
                             link_para.paragraph_format.space_after = Pt(0)
                             link_para.paragraph_format.left_indent = Inches(margin)
-                            link_run1 = link_para.add_run(f"Project Link: ")
+                            link_run1 = link_para.add_run("Project Link: ")
                             link_run1.font.size = Pt(10)
                             link_run2 = link_para.add_run(f"{project_link}")
                             link_run2.font.size = Pt(10)
