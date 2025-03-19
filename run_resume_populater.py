@@ -10,7 +10,7 @@ from db_manager import (
 )
 
 try:
-    if os.path.exists("db_loader.py"):
+    if os.path.exists("db_loader1.py"):
         from db_loader import load_info
 
         db_path = "resume.db"
