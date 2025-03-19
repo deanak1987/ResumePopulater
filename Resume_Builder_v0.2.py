@@ -280,17 +280,19 @@ def build_resume(
                                 )
                                 detail_run = bullet_para.add_run(f"{detail.strip()}")
                                 detail_run.font.size = Pt(10)
-                        if project_type:
-                            continue
+
                         if project_link:
-                            link_para = doc.add_paragraph()
+                            link_para = doc.add_paragraph(style="List Bullet")
                             link_para.paragraph_format.space_before = Pt(0)
                             link_para.paragraph_format.space_after = Pt(0)
                             link_para.paragraph_format.left_indent = Inches(margin)
-                            link_run = link_para.add_run(f"{project_link}")
-                            link_run.font.size = Pt(10)
-                            link_run.underline = True
-
+                            link_run1 = link_para.add_run(f"Project Link: ")
+                            link_run1.font.size = Pt(10)
+                            link_run2 = link_para.add_run(f"{project_link}")
+                            link_run2.font.size = Pt(10)
+                            link_run2.underline = True
+                        if project_type:
+                            continue
     # Save the document
     print(f"Saving file as {output_file}")
     doc.save(output_file)

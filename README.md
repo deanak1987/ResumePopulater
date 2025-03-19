@@ -144,9 +144,9 @@ CREATE TABLE Job_Postings (
 ```
 
 ## Transcript Parser
-The transcript_parser.py file reads in a transcript PDF and loads the educational institution and coursework information into the DB to alleviate having to input the info by hand.
- * Currently only configured to read my UW master of CS transcript
- * Need to add further functionality to read other university transcripts
+The transcript_parser_ai.py file reads in a transcript PDF and loads the educational institution and coursework information into the DB to alleviate having to input the info by hand.
+ * Utilizes OpenAi GPT API to quickly read pdf of any shape and orientation to efficiently collect the necessary institution and coursework data
+ * Loads collected transcript data into the database so that it can be used by the resume builder
 
 ## Job Posting Scraper
 The job_posting_scraper_ai.py file loads a URL for a job posting and scrapes all the pertinent information.
