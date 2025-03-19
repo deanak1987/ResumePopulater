@@ -12,6 +12,7 @@ from db_manager import (
 try:
     if os.path.exists("db_loader.py"):
         from db_loader import load_info
+
         db_path = "resume.db"
         setup_db.db_builder(db_path)
         load_info(db_path)
@@ -19,6 +20,7 @@ try:
         raise ImportError  # Force fallback if db_loader isn't available
 except ImportError:
     from db_loader_generic import load_generic
+
     db_path = "resume_generic.db"
     setup_db.db_builder(db_path)
     load_generic(db_path)
